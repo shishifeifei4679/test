@@ -6,7 +6,6 @@
       ref="formSearch"
       @handleSearch="searchTable"
       @handleReset="searchTable"
-      v-show="formSearchShow"
     />
     <el-tabs
       v-model="activeName"
@@ -21,7 +20,7 @@
         :name="index.toString()"
       >
         <ele-table
-          v-if="item.attrs && activeName == index.toString()"
+          v-if="item.attrs"
           v-bind="item.attrs"
           v-on="item.on || {}"
           :ref="'paneTable' + index"
@@ -62,12 +61,7 @@ export default {
     activIndex: {
       type: [String, Number],
       default: '0'
-    },
-    // 搜索表单显示、隐藏，默认显示
-    formSearchShow: {
-      type: Boolean,
-      default: true,
-    },
+    }
   },
   data () {
     return {

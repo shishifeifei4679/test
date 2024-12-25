@@ -6,7 +6,6 @@
     v-model.trim="newValue"
     v-on="desc.on"
     @input="handleChange"
-    @keyup.13.native="$emit('keyUp13',newValue)"
   >
     <template v-for="(render, key) of slots" v-slot:[key]>
       <extend-slot :key="key" :render="render" />

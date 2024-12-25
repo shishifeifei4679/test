@@ -10,17 +10,17 @@
 </template>
 
 <script>
-import EleUploadFile from "../ele-upload-file/EleUploadFile.vue";
-import formMixin from "../ele-form/mixins/formMixin";
-import uploadMixin from "../ele-form/mixins/uploadMixin";
+import EleUploadFile from '../ele-upload-file/EleUploadFile.vue'
+import formMixin from '../ele-form/mixins/formMixin'
+import uploadMixin from '../ele-form/mixins/uploadMixin'
 
 export default {
-  name: "EleFormUploadFile",
+  name: 'EleFormUploadFile',
   mixins: [formMixin, uploadMixin],
   components: {
-    EleUploadFile,
-  },
-};
+    EleUploadFile
+  }
+}
 </script>
 
 <style>

@@ -1,13 +1,12 @@
 import Vue from "vue";
-
 import "@/components/contextmenu/style.css";
 import Contextmenu from "@/components/contextmenu/index";
 import awesomeSubBar from "../components/awesomeSubBar/index.vue";
+import awesomeTable from "../components/awesomeTable/index.vue";
 import EleUploadFile from "@/components/ele-upload-file/EleUploadFile";
 import EleFormUploadFile from "@/components/ele-form-upload-file/EleFormUploadFile";
 import EleUploadImage from "@/components/ele-upload-image/EleUploadImage";
 import EleFormImageUploader from "@/components/ele-form-image-uploader/EleFormImageUploader";
-import EleFormImageUpload from "@/components/ele-form-image-upload/EleFormImageUpload";
 import EleFormTreeSelect from "@/components/ele-form-treeSelect/EleFormTreeSelect";
 import eleTable from "@/components/ele-table/index.vue";
 import ElePage from "@/components/ele-page/index.vue";
@@ -21,12 +20,10 @@ import eleWangEditor from "@/components/ele-wangEditor/index.vue";
 import wangEditor from "@/components/ele-form-wangEditor/index.vue";
 import EleTableBatchEditor from "@/components/ele-table-batch-editor/index.vue";
 import EleFormTableEditor from "@/components/ele-form-table-editor/index.vue";
-import DragPack from "@/components/left-right-drag-pack/index.vue";
+import SearchBar from "@/views/process/mesProcessMaterial/components/SearchBar";
 import EleImportDrawer from "@/components/ele-import-drawer/index.vue";
-// 二维码组件
-import { CustomPrintPreview } from "mom-common-pc";
+import DragPack from "@/components/left-right-drag-pack/index.vue";
 
-Vue.component("table-editor", EleFormTableEditor);
 Vue.component("ele-table", eleTable);
 // 注册单独文件上传
 Vue.component("ele-upload-file", EleUploadFile);
@@ -37,8 +34,6 @@ Vue.component("tree-select", EleFormTreeSelect);
 Vue.component("upload-file", EleFormUploadFile);
 // 集成ele-form 上传图片 ，注册 image-uploader 组件
 Vue.component("image-uploader", EleFormImageUploader);
-// 集成ele-form 上传图片 ，注册 image-upload 组件，基于image-uploader升级的组件，新功能采用这个组件
-Vue.component("image-upload", EleFormImageUpload);
 // 页面级table组件
 Vue.component("ele-page", ElePage);
 // 弹框表格
@@ -50,6 +45,7 @@ Vue.component("ele-tree-composite-table", EleTreeCompositeTable);
 // 图片上传
 Vue.component("ele-upload-image", EleUploadImage);
 Vue.component("awesomeSubBar", awesomeSubBar);
+Vue.component("awesomeTable", awesomeTable);
 // 表格行操作
 Vue.component("ele-row-operation", EleRowOperation);
 // 主子表表格 左右布局
@@ -63,12 +59,14 @@ Vue.component("wang-editor", wangEditor);
 
 // 表格编辑组件
 Vue.component("ele-table-batch-editor", EleTableBatchEditor);
-
 // 表格上传组件
 Vue.component("ele-import-drawer", EleImportDrawer);
 
-// 自定义打印
-Vue.use(CustomPrintPreview);
-Vue.component("drag-pack", DragPack);
+// 集成ele-form编辑器 历史遗留 不可删除
+Vue.component("table-editor", EleFormTableEditor);
+Vue.component("search-bar", SearchBar);
+// 表格上传组件
+Vue.component("ele-import-drawer", EleImportDrawer);
 // 右单机指令
 Vue.use(Contextmenu);
+Vue.component("drag-pack", DragPack);

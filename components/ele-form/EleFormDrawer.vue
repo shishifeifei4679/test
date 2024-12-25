@@ -16,11 +16,12 @@
     <template v-slot:title>
       <slot :title="title" name="title"></slot>
     </template>
+    <!--      labelPosition="top" -->
     <ele-form
       :formDesc="formDesc"
-      labelPosition="top"
       :formData="formData"
       height="100%"
+      labelPosition="top"
       class="drawer-form"
       @input="$emit('input', $event)"
       :isShowBackBtn="isShowBackBtn"
@@ -29,6 +30,7 @@
       :visible="visible"
       v-bind="$attrs"
       v-on="$listeners"
+      :disableEnterSubmit="$attrs.disableEnterSubmit || false"
       :key="formKey"
     >
       <!-- 默认插槽 -->

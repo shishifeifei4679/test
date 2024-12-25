@@ -8,7 +8,6 @@
     v-bind="$attrs"
     v-on="$listeners"
     @close="close"
-    :append-to-body="appendToBody"
   >
     <div>
       <div v-if="formSearchShow && Object.keys(formConfig).length > 0">
@@ -60,9 +59,9 @@
       </template>
       <template v-else>
         <el-button @click="handleCancel">{{ $t("common.cancel") }}</el-button>
-        <el-button type="warning" v-if="isShowClear"  @click="handleClearSelected">{{ $t("common.clearSelected") }}</el-button>
-        <el-button type="primary" @click="handelConfirm">{{
-          submitText || $t("common.ok")
+        <el-button type="warning" v-if="clearSelected"  @click="handleClearSelected">{{ $t("common.clearSelected") }}</el-button>
+        <el-button type="primary" @click="handelConfirm" :disabled="choseOne && submitDisabled">{{
+          submitText || $t("common.submit")
         }}</el-button>
       </template>
     </div>
@@ -135,18 +134,19 @@ export default {
     footer: {
       type: Array,
     },
-    /**
-     * @author bing
-     * @since 2024-01-22 11:39:15
-     *  是否显示清除已选择按钮,目的清除已经插入inpu上的内容
-     */
-    isShowClear: {
+      /**
+       * @author bing 
+       * @since 2024-01-22 11:39:15
+       *  是否显示清除已选择按钮,目的清除已经插入inpu上的内容
+       */
+    clearSelected: {
       type: Boolean,
-      default: false, //默认不显示,
+      default: false, //默认不显示,  
     },
-    appendToBody: {
+    // 是否只能选择一条数据
+    choseOne: {
       type: Boolean,
-      default: false, // 是否需要在body中插入，默认不需要
+      default: false, //默认不显示,  
     },
   },
   data() {
@@ -161,6 +161,9 @@ export default {
     };
   },
   computed: {
+    submitDisabled(){
+      return this.multipleSelection.length === 0 || this.multipleSelection.length > 1;
+    },
     // 按钮是否可点击
     isDisabled() {
       return function (item) {
@@ -236,10 +239,10 @@ export default {
     handleCancel() {
       this.updateVisible();
     },
-    // 清空已选择回填到input上的数据
+// 清空已选择回填到input上的数据
     handleClearSelected() {
       this.$emit("getSelectData", []);
-      this.close();
+        this.close();
     },
     // 确定
     handelConfirm() {
@@ -251,13 +254,6 @@ export default {
         );
         if (findSelection && this.multipleSelection.length === 0) {
           this.$message.error(this.$t("common.multiple"));
-          return;
-        }
-        const findRadioSelection = this.column.some(
-          (val) => val.type === "radio"
-        );
-        if (findRadioSelection && this.multipleSelection.length !== 1) {
-          this.$message.error(this.$t("common.single"));
           return;
         }
         this.$emit("getSelectData", this.multipleSelection);

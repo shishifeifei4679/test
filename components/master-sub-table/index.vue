@@ -1,37 +1,35 @@
 <template>
   <div class="master-sub-page">
-    <div class="main">
-      <!-- 查询表单 -->
-      <ele-form-search
-        :formConfig="formConfig"
+    <!-- 查询表单 -->
+    <ele-form-search
+      :formConfig="formConfig"
+      :initForm="initForm"
+      @handleSearch="handleSearch"
+      @handleReset="handleReset"
+      ref="eleFormSearch"
+      v-show="formSearchShow"
+    ></ele-form-search>
+    <!-- 主列表展示 -->
+    <div ref="tableTop">
+      <ele-table
+        ref="masterTable"
+        v-on="$listeners"
+        v-bind="$attrs"
+        :column="masterColumn"
+        :getList="masterApi"
+        :pagination="masterPagination"
+        :beforeRequest="selfMasterBeforeRequest"
+        :transFormdata="selfMasterTransFormdata"
+        :maxHeight="maxHeight"
+        @row-click="masterRowClick"
+        @handleOperateEvent="handleOperateEvent"
         :initForm="initForm"
-        @handleSearch="handleSearch"
-        @handleReset="handleReset"
-        ref="eleFormSearch"
-        v-show="formSearchShow"
-      ></ele-form-search>
-      <!-- 主列表展示 -->
-      <div ref="tableTop">
-        <ele-table
-          ref="masterTable"
-          v-on="$listeners"
-          v-bind="$attrs"
-          :column="masterColumn"
-          :getList="masterApi"
-          :pagination="masterPagination"
-          :beforeRequest="selfMasterBeforeRequest"
-          :transFormdata="selfMasterTransFormdata"
-          :maxHeight="maxHeight"
-          @row-click="masterRowClick"
-          @handleOperateEvent="handleOperateEvent"
-          :initForm="initForm"
-        >
-        </ele-table>
-      </div>
+      >
+      </ele-table>
     </div>
+
     <!-- 子列表展示 -->
     <ele-table
-      style="flex: 1"
       ref="subTable"
       :column="subColumn"
       :getList="subApi"
@@ -135,7 +133,10 @@ export default {
       this.$emit("handleReset");
     },
     getSearchParams() {
-      // let formData = this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData ? this.$refs.eleFormSearch.formData : {};
+      // let formData =
+      //   this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+      //     ? this.$refs.eleFormSearch.formData
+      //     : {};
       // formData = this.getArrtoMap(formData);
       // return formData;
 
@@ -146,7 +147,28 @@ export default {
       const queryParam = !this.formSearchShow
         ? this.$refs.masterTable.queryParam
         : {};
+      let newFormData = {
+        ...formData,
+        ...queryParam,
+      };
+      newFormData = this.getArrtoMap(newFormData);
+      return newFormData;
+    },
+    getSearchParamsSubTable() {
+      // let formData =
+      //   this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+      //     ? this.$refs.eleFormSearch.formData
+      //     : {};
+      // formData = this.getArrtoMap(formData);
+      // return formData;
 
+      let formData =
+        this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+          ? this.$refs.eleFormSearch.formData
+          : {};
+      const queryParam = !this.formSearchShow
+        ? this.$refs.subTable.queryParam
+        : {};
       let newFormData = {
         ...formData,
         ...queryParam,
@@ -202,6 +224,9 @@ export default {
       }
     },
     handleSubOperateEvent(data) {
+      if (data.handleName === "export" && data.url) {
+        exportExcel(data.url);
+      }
       this.$emit("handleSubOperateEvent", data);
     },
     // 刷新主表

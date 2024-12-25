@@ -7,7 +7,7 @@
           :label-width="computedLabelWidth"
           :model="formData"
           :rules="computedRules"
-          @submit.native.prevent="handleSubmitForm"
+          @submit.native.prevent="handleSubmitForm('submit')"
           ref="form"
           :validate-on-rule-change="false"
           :disabled="disabled"
@@ -48,29 +48,10 @@
                           ? formItem._label
                           : null
                       "
-                      :class="formItem.class"
                       :label-width="formItem.labelWidth || null"
                       :prop="field"
+                      :class="formItem.class"
                     >
-                      <template slot="label" v-if="formItem.note">
-                        <span>
-                          {{
-                            isShowLabel && formItem.isShowLabel !== false
-                              ? formItem._label
-                              : null
-                          }}
-
-                          <el-popover
-                            placement="top-start"
-                            width="200"
-                            trigger="hover"
-                            :content="formItem.note"
-                          >
-                            <i style="color:#b2b2b2" slot="reference" class="el-icon-question"></i>
-                          </el-popover>
-                        </span>
-                      </template>
-
                       <!-- 具名 作用域插槽(用于用户自定义显示) -->
                       <slot
                         :data="formData[field]"
@@ -95,7 +76,6 @@
                           :field="field"
                           :formData="formData"
                           @input="setValue(field, $event)"
-                          @keyUp13="keyUp13(field, $event)"
                           :value="formData[field]"
                         />
                       </slot>
@@ -157,6 +137,11 @@ export default {
     };
   },
   props: {
+    // 禁用回车提交
+    disableEnterSubmit:{
+      type: Boolean,
+      default: false
+    },
     // 表单描述
     formDesc: {
       type: Object,
@@ -325,7 +310,9 @@ export default {
             "native-type": "submit",
           },
           text: this.computedSubmitBtnText,
-          click() {},
+          click:(e)=> {
+            this.handleSubmitForm(e.pointerType === 'mouse' ? 'button' : 'submit')
+          },
         });
       }
 
@@ -358,7 +345,7 @@ export default {
         btns.push({
           attrs: {
             size: formBtnSize,
-            disabled: false,
+            disabled:false,
           },
           text: this.cancelBtnText || t("ele-form.cancelBtnText"),
           click: this.handleCancelClick,
@@ -553,15 +540,6 @@ export default {
     },
   },
   methods: {
-    // input回车
-    keyUp13(field, val) {
-      if (
-        this.formDescData[field].on &&
-        this.formDescData[field].on["keyUp13"]
-      ) {
-        this.formDescData[field].on["keyUp13"](val);
-      }
-    },
     getValue(field) {
       return this.formData[field];
     },
@@ -901,8 +879,13 @@ export default {
       await this.validateForm();
       await this.validateComponent();
     },
-    // 提交表单
-    async handleSubmitForm() {
+    // 提交表单 actionType: submit | button  submit: 点击回车触发 | button: 点击按钮触发
+    async handleSubmitForm(actionType = "button") {
+      // 禁用回车提交
+      if (this.disableEnterSubmit && actionType === "submit") {
+        return;
+      }
+
       try {
         // 自定义处理
         this.$emit("before-validate", this.formData);
@@ -999,6 +982,9 @@ export default {
       this.$emit("close");
       this.$emit("cancel");
       this.$emit("update:visible", false);
+    },
+    clearValidate(){
+      this.$refs.form.clearValidate();
     },
     // 重置表单
     resetForm() {

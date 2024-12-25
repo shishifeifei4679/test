@@ -5,8 +5,6 @@
 </template>
 <script>
 import E from "wangeditor";
-import i18next from 'i18next';
-
 export default {
   name: "eleWangEditor",
   props: {
@@ -72,8 +70,6 @@ export default {
         ...editor.config,
         ...this.config,
       };
-      editor.config.lang = this.$store.getters.language === 'cn' ? 'zh-CN' : this.$store.getters.language;
-      editor.i18next = i18next;
       if (!editor.config.uploadImgServer) {
         editor.config.uploadImgShowBase64 = true;
       }

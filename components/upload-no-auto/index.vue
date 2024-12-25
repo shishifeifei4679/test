@@ -58,7 +58,7 @@ export default {
       if (!this.accept.includes(FileExt)) {
         this.fileList.pop();
         this.$message.warning(this.$t("import.msg4",{msg:this.accept}))
-      } else {
+      } else{
         const formData = new FormData();
         formData.append("file", file.raw);
         this.$emit("onchange", formData);
@@ -77,8 +77,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.btn-pack {
-  text-align: left;
-}
-</style>
+<style scoped></style>

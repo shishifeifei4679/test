@@ -24,8 +24,7 @@
           @row-click="masterRowClick"
           @handleOperateEvent="handleMasterOperateEvent"
           :initForm="initForm"
-        >
-        </ele-table>
+        ></ele-table>
       </div>
       <div :style="rightStyle" class="rightTable">
         <!-- 子列表展示 -->
@@ -40,8 +39,7 @@
           :operateList="subOperateList"
           @handleOperateEvent="handleOperateEvent"
           :initForm="initForm"
-        >
-        </ele-table>
+        ></ele-table>
       </div>
     </div>
   </div>
@@ -133,6 +131,7 @@ export default {
       };
     },
   },
+
   methods: {
     // 搜索
     handleSearch() {
@@ -150,6 +149,10 @@ export default {
     // 获取搜索参数
     getSearchParams() {
       // let formData = this.$refs.eleFormSearch.formData || {};
+      // let formData =
+      //   this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+      //     ? this.$refs.eleFormSearch.formData
+      //     : {};
       // formData = this.getArrtoMap(formData);
       // return formData;
 
@@ -160,10 +163,14 @@ export default {
       const queryParam = !this.formSearchShow
         ? this.$refs.masterTable.queryParam
         : {};
-
+      // const queryParamChild = !this.formSearchShow
+      //   ? this.$refs.subTable.subTable
+      //   : {};
+       
       let newFormData = {
         ...formData,
         ...queryParam,
+        // ...queryParamChild
       };
       newFormData = this.getArrtoMap(newFormData);
       return newFormData;
@@ -249,8 +256,8 @@ export default {
     padding-left: 10px;
     box-sizing: border-box;
   }
-    // 修复列的 边框线消失的bug
-    /deep/thead th:not(.is-hidden):last-child {
+  // 修复列的 边框线消失的bug
+  /deep/thead th:not(.is-hidden):last-child {
     right: -1px;
   }
   /deep/.el-table__row {

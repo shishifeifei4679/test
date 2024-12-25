@@ -1,198 +1,146 @@
 <template>
-  <div
-    ref="waterMask"
-    class="_waterMask"
-    v-if="destroy"
-    :style="{
-      '--opacity': opacity,
-      '--transform': transform,
-      '--sizeW': getW(),
-      '--sizeH': getH(),
-      '--packW': packW,
-      '--fontColor': fontColor,
-      '--fontSize': fontSize,
-    }"
-  >
-    <div class="pack" ref="packs" style="width: calc(100% + var(--sizeW) * 2);">
-      <div
-        :key="ite"
-        v-for="ite in (length==120?lengthMax:length)"
-        :class="align"
-      >
-        <img v-if="value[0]" :src="value[0]" alt="" />
-        <div v-if="value[1]">{{ value[1] }}</div>
-      </div>
-    </div>
-  </div>
+  <div class="_waterMask"></div>
 </template>
 <script>
 export default {
   props: {
-    // 受否禁用水印
-    destroy: {
+    //是否允许通过js或者开发者工具等途径修改水印DOM节点（水印的id，attribute属性，节点的删除）
+    //true为允许，默认不允许
+    inputAllowDele: {
       type: Boolean,
-      default: true,
+      default: false,
     },
-    length: {
-      type: Number,
-      default: 120,
+    //是否在销毁组件时去除水印节点（前提是允许用户修改DOM，否则去除后会再次自动生成）
+    // true会，默认不会
+    inputDestroy: {
+      type: Boolean,
+      default: false,
     },
-    // 整体透明度
-    opacity: {
-      type: Number,
-      default: 0.5,
-    },
-    // 布局方式, left,左右结构,  top上下结构
-    align: {
+    id: {
       type: String,
-      default: "left",
-    },
-    // 旋转角度
-    transform: {
-      type: String,
-      default: "10deg",
-    },
-    // 密度, mini,最密集, default默认, medium中等, big宽松
-    size: {
-      type: String,
-      default: "default",
-    },
-    // 绑定的图片文字, 下表0   图片 下标1 文字
-    value: {
-      type: Array,
-      default: () => ["", ""],
-    },
-    //字体大小
-    fontSize: {
-      type: String,
-      default: "14px",
-    },
-    // 字体颜色
-    fontColor: {
-      type: String,
-      default: "#60626652",
-    },
-    // 字体颜色
-    packW: {
-      type: String,
-      default: "200%",
-    },
-  },
-  watch: {
-    size: {
-      handler(val, old) {
-        this.getLengthMax()
-      },
-      deep: true,
+      default: "watermask",
     },
   },
   data() {
     return {
       drawer: true,
-      lengthMax: 200,
-      sizeList: {
-        veryMini: { width: 180, height: 100 }, //非常小
-        mini: { width: 240, height: 140 }, //小
-        default: { width: 300, height: 180 }, //默认
-        medium: { width: 360, height: 200 }, //中等
-        big: { width: 400, height: 260 }, //大
+      maskDiv: {}, //当前显示的水印div节点DOM对象
+      initProps: {
+        inputText: "超级管理员", //显示的水印文本
+        width: "300", // 单个水印的宽度
+        height: "230", // 单个水印的宽度
+        fillStyle: "rgb(112, 113, 114, 0.2)", // 水印颜色
+        rotateNumber: 40, // 旋转角度
+        zIndex: "3000", // 水印的层级
       },
     };
   },
+  mounted() {
+    //确认DOM渲染后再执行
+    this.$nextTick(() => {
+      //创建水印节点
+      this.init();
+      if (!this.inputAllowDele) {
+        // 设置水印节点修改的DOM事件
+        this.Monitor();
+      }
+    });
+  },
   methods: {
-    // getLength() {
-    //   console.log(2222222, this.$refs.packs);
-    //   if (this.size == "veryMini") {
-    //     return 160 * 2 + 10 + 20;
-    //   } else if (this.size == "mini") {
-    //     return 96 * 2 + 10 + 40;
-    //   } else if (this.size == "default") {
-    //     return 60 * 2 + 10 + 80;
-    //   } else if (this.size == "medium") {
-    //     return 50 * 2 + 10 + 80;
-    //   } else if (this.size == "big") {
-    //     return 40 * 2 + 10 + 10;
-    //   } else {
-    //     return 120;
-    //   }
-    // },
+    init() {
+      let canvas = document.createElement("canvas");
+      canvas.id = "canvas";
+      canvas.width = this.initProps.width; //单个水印的宽高
+      canvas.height = this.initProps.height;
+      this.maskDiv = document.createElement("div");
+      let ctx = canvas.getContext("2d");
+      ctx.font = "normal 18px Microsoft Yahei"; //设置样式
+      ctx.fillStyle = this.initProps.fillStyle; //水印字体颜色
+      ctx.rotate((this.initProps.rotateNumber * Math.PI) / 180); //水印偏转角度
+      //  第二个参数 下移 的参数
+      ctx.fillText(this.initProps.inputText, 70, 20);
+
+      let src = canvas.toDataURL("image/png");
+      this.maskDiv.style.position = "fixed";
+      this.maskDiv.style.zIndex = this.initProps.zIndex; //  水印的层级
+      this.maskDiv.id = "_waterMark";
+      this.maskDiv.style.top = "80px";
+      this.maskDiv.style.left = "480px";
+      this.maskDiv.style.width = "80%";
+      this.maskDiv.style.height = "100%";
+      this.maskDiv.style.pointerEvents = "none";
+      this.maskDiv.style.backgroundImage = "URL(" + src + ")";
+      document.getElementById("watermask").appendChild(this.maskDiv);
+      // 水印节点插到body下
+      // document.body.appendChild(this.maskDiv)
+    },
+    Monitor() {
+      let body = document.getElementById("watermask");
+      // let body = document.getElementsByTagName('body')[0]
+      let options = {
+        childList: true,
+        attributes: true,
+        characterData: true,
+        subtree: true,
+        attributeOldValue: true,
+        characterDataOldValue: true,
+      };
+      let observer = new MutationObserver(this.callback);
+      observer.observe(body, options); //监听父节点， 强制删除则重新创建
+    },
+    //DOM改变执行callback
+    callback(mutations, observer) {
+      //当attribute属性被修改
+      if (mutations[0].target.id === "_waterMark") {
+        this.removeMaskDiv();
+      }
+      //当id被改变时
+      if (mutations[0].attributeName === "id") {
+        this.removeMaskDiv();
+        this.init();
+      }
+      //当节点被删除
+      if (
+        mutations[0].removedNodes[0] &&
+        mutations[0].removedNodes[0].id === "_waterMark"
+      ) {
+        this.init();
+      }
+    },
+    /* public */
     //手动销毁水印DOM
     removeMaskDiv() {
-      document.getElementById(this.$refs.waterMask).removeChild(this.maskDiv);
+      // document.body.removeChild(this.maskDiv)
+      document.getElementsByClassName("watermask")[0].removeChild(this.maskDiv);
     },
-    getW() {
-      // this.size="big"
-      // if (this.align == "left") {
-      // return this.sizeList[this.size].width + 100 + "px";
-      // } else {
-      return this.sizeList[this.size].width + "px";
-      // }
-    },
-    getH() {
-      // if (this.align == "top") {
-      // return this.sizeList[this.size].height + 10 + "px";
-      // } else {
-      return this.sizeList[this.size].height + "px";
-      // }
-    },
-    // 计算节点
-    getLengthMax() {
-      let { offsetHeight, offsetWidth } = this.$refs.packs;
-      let { width, height } = this.sizeList[this.size];
-      const col = Math.ceil(offsetWidth / width);
-      const row = Math.ceil(offsetHeight / height);
-      this.lengthMax = col * row;
+    //手动生成水印
+    createMaskDiv() {
+      this.init();
     },
   },
-  mounted() {
-  this.getLengthMax()
+  watch: {
+    //监听传入水印文本变化
+    inputText() {
+      this.$nextTick(() => {
+        this.removeMaskDiv();
+      });
+    },
+  },
+  destroy() {
+    //组件销毁时去除生成在body节点下的水印节点
+    if (this.inputDestroy) {
+      this.removeMaskDiv();
+    }
   },
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 ._waterMask {
-  top: 0px;
-  position: absolute;
-  z-index: 999999;
-  width: var(--packW);
-  height: 200%;
-  overflow: hidden;
-  pointer-events: none;
-
-  .top {
-    text-align: center;
-  }
-  .left {
-    display: flex;
-    align-items: center;
-  }
-
-  .pack {
-    opacity: var(--opacity);
+  #settingBtn {
     position: absolute;
-    top: -50%;
-    left: 0;
-    bottom: 0;
+    bottom: 20px;
     right: 0;
-    width: 150%;
-    height: 150%;
-    z-index: 999999;
-    //  transform-origin: left;
-    color: #fff;
-    pointer-events: none;
-    -webkit-transform: rotate(-40deg);
-    transform: rotate(-40deg);
-    & > div {
-      pointer-events: none;
-      -webkit-transform: rotate(var(--transform));
-      transform: rotate(var(--transform));
-      font-size: var(--fontSize);
-      font-weight: 100;
-      min-width: var(--sizeW);
-      min-height: var(--sizeH);
-      float: left;
-      color: var(--fontColor);
-    }
+    font-size: 35px;
   }
 }
 </style>

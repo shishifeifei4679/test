@@ -1,13 +1,13 @@
 <script>
 export default {
-  name: 'LbRender',
+  name: "LbRender",
   functional: true,
   props: {
-    scope: Object|Array,
+    scope: Object | Array,
     render: Function
   },
   render: (h, ctx) => {
-    return ctx.props.render ? ctx.props.render(h, ctx.props.scope) : ''
+    return ctx.props.render ? ctx.props.render(h, ctx.props.scope) : ""
   }
 }
 </script>

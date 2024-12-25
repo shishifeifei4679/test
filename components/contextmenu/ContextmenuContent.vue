@@ -17,7 +17,6 @@
           <span class="text">{{ menu.text }}</span>
           <v-contextmenu-content
             class="sub-menu"
-            type
             :style="{
               [subMenuPosition]: '112.5%'
             }"
@@ -33,7 +32,7 @@
 
 <script>
 export default {
-  name: 'v-contextmenu-content',
+  name: "v-contextmenu-content",
   props: {
     menus: {
       type: Array,
@@ -45,7 +44,7 @@ export default {
     },
     subMenuPosition: {
       type: String,
-      default: 'left'
+      default: "left"
     },
     clickMenuItem: {
       type: Function,
@@ -56,12 +55,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+// $menuWidth: 110px;
 $menuWidth: 120px;
 $menuHeight: 30px;
 $subMenuWidth: 120px;
 
 .v-contextmenu-content {
-  min-width: $menuWidth;
+  width: $menuWidth;
   padding: 5px 0;
   background-color: #fff;
   box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.12);
@@ -84,6 +84,7 @@ $subMenuWidth: 120px;
     .v-contextmenu-item {
       color: #f1f1f1;
       background-color: #393939;
+
       &:hover:not(.disable) {
         background-color: #555;
       }
@@ -99,6 +100,7 @@ $subMenuWidth: 120px;
   }
 }
 .v-contextmenu-item {
+  // padding: 0 20px;
   padding: 0 16px;
   color: #333;
   font-size: 12px;
@@ -137,7 +139,7 @@ $subMenuWidth: 120px;
   position: relative;
 
   &.has-sub-menu::before {
-    content: '';
+    content: "";
     display: inline-block;
     width: 8px;
     height: 8px;

@@ -32,33 +32,6 @@ export default {
     sortable: false,
     resizable: false
   },
-  radio: {
-    renderHeader: (h, { store }) => {
-      return (
-        <span></span>
-      )
-    },
-    renderCell: (h, { row, column, store, $index }) => {
-      return (
-        <el-checkbox
-          class="radio-shape"
-          nativeOn-click={event => event.stopPropagation()}
-          value={store.isSelected(row)}
-          disabled={
-            column.selectable
-              ? !column.selectable.call(null, row, $index)
-              : false
-          }
-          on-input={() => {
-            store.clearSelection();
-            store.commit('rowSelectedChanged', row)
-          }}
-        />
-      )
-    },
-    sortable: false,
-    resizable: false
-  },
   index: {
     renderHeader: (h, scope) => {
       return <span>{scope.column.label || '#'}</span>

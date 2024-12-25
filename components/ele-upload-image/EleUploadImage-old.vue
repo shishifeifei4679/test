@@ -8,13 +8,12 @@
       :data="data"
       :disabled="uploading"
       :drag="Boolean(drag)"
-      :headers="headers"
+      :headers="newHeaders"
       :http-request="httpRequest"
       :limit="limit"
       :list-type="drag ? 'picture' : 'picture-card'"
       :multiple="multiple"
       :name="name"
-      :auto-upload="autoUpload"
       :on-change="handleChange"
       :on-error="handleUploadError"
       :on-exceed="handleExceed"
@@ -84,7 +83,7 @@
 
       <cropper
         :field="name"
-        :headers="headers"
+        :headers="newHeaders"
         :height="cropHeight"
         :noCircle="cropHeight !== cropWidth"
         :params="data"
@@ -120,7 +119,9 @@
 <script>
 import Cropper from "vue-image-crop-upload";
 import EleGallery from "vue-ele-gallery";
-
+import { logout } from "@/utils/judge";
+import { refreshToken } from "@/api/login";
+import service from "@/axios/axios";
 export default {
   name: "EleUploadImage",
   props: {
@@ -164,10 +165,6 @@ export default {
     isShowSuccessTip: {
       type: Boolean,
       default: false,
-    },
-    autoUpload: {
-      type: Boolean,
-      default: true,
     },
     // 缩略图后缀, 例如七牛云缩略图样式 (?imageView2/1/w/20/h/20)
     thumbSuffix: {
@@ -238,6 +235,7 @@ export default {
       isShowCrop: false,
       uploading: false,
       fileList: [],
+      newHeaders: { Satoken: this.$store.getters.token },
     };
   },
   computed: {
@@ -310,59 +308,65 @@ export default {
       this.handleUploadSuccess(response, file, this.fileList);
     },
     // 上传前校检格式和大小
-    handleBeforeUpload(file) {
-      let isImg = false;
-      if (this.fileType.length) {
-        let fileExtension = "";
-        if (file.name.lastIndexOf(".") > -1) {
-          fileExtension = file.name.slice(file.name.lastIndexOf(".") + 1);
+    async handleBeforeUpload(file) {
+      const response = await service.request({
+        url: refreshToken,
+        method: "get",
+      });
+      return new Promise((resolve, reject) => {
+        if (response.data.code == 0) {
+          if (!response.data.result) {
+            // logout()
+          } else {
+            this.newHeaders = {
+              ...this.headers,
+              Satoken: response.data.result,
+            };
+            this.$store.commit("SET_TOKEN", response.data.result);
+          }
         }
-        isImg = this.fileType.some((type) => {
-          if (file.type.indexOf(type) > -1) return true;
-          if (fileExtension && fileExtension.indexOf(type) > -1) return true;
-          return false;
-        });
-      } else {
-        isImg = file.type.indexOf("image") > -1;
-      }
 
-      if (!isImg) {
-        this.$message.error(
-          `${this.$t("common.upload4")}${this.fileType.join("/")} ${this.$t(
-            "common.upload5"
-          )}`
-        );
-        return false;
-      }
-
-      if (this.fileSize) {
-        const isLt = file.size / 1024 / 1024 < this.fileSize;
-        if (!isLt) {
+        let isImg = false;
+        if (this.fileType.length) {
+          let fileExtension = "";
+          if (file.name.lastIndexOf(".") > -1) {
+            fileExtension = file.name.slice(file.name.lastIndexOf(".") + 1);
+          }
+          isImg = this.fileType.some((type) => {
+            if (file.type.indexOf(type) > -1) return true;
+            if (fileExtension && fileExtension.indexOf(type) > -1)
+              return  true;
+            return false;
+          });
+        } else {
+          isImg = file.type.indexOf("image") > -1;
+        }
+        if (!isImg) {
           this.$message.error(
-            `${this.$t("common.upload6")} ${this.fileSize} MB!`
+            `${this.$t("common.upload4")} ${this.fileType.join("/")}${this.$t(
+              "common.upload5"
+            )}`
           );
-          return false;
+          return reject();
         }
-      }
 
-      this.uploading = true;
-      return true;
+        if (this.fileSize) {
+          const isLt = file.size / 1024 / 1024 < this.fileSize;
+          if (!isLt) {
+            this.$message.error(
+              `${this.$t("common.upload6")} ${this.fileSize} MB!`
+            );
+            return reject();
+          }
+        }
+
+        this.uploading = true;
+        return resolve();
+      });
     },
     handleChange(file, fileList) {
-      const _this = this;
-      this.fileList = fileList;
-      // this.val
-      if (!this.autoUpload) {
-        // debugger
-        if (this.handleBeforeUpload(file.raw)) {
-          let reader = new FileReader();
-          reader.readAsDataURL(file.raw);
-          reader.onload = function (e) {
-            _this.$emit("input", e.target.result);
-          };
-        }
-      }
       this.uploading = false;
+      this.fileList = fileList;
     },
     // 文件个数超出
     handleExceed() {
@@ -404,10 +408,10 @@ export default {
         data.splice(index, 1);
         this.$emit("input", data || []);
       } else {
-        this.$emit("input", []);
+        this.$emit("input", null);
       }
     },
-    handleRemove(index) {  
+    handleRemove(index) {
       if (!this.beforeRemove) {
         this.doRemove(index);
       } else if (typeof this.beforeRemove === "function") {

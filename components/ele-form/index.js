@@ -41,7 +41,7 @@ import EleFormAutocomplete from './components/EleFormAutocomplete'
 import EleFormCascaderPanel from './components/EleFormCascaderPanel'
 import EleFormDatetimerange from './components/EleFormDatetimerange'
 import EleFormCheckboxButton from './components/EleFormCheckboxButton'
-import EleFormSectionName from './components/EleFormSectionName'
+import EleFormInputSelect from './components/EleFormInputSelect'
 
 const components = [
   EleForm,
@@ -83,7 +83,7 @@ const components = [
   EleFormCascaderPanel,
   EleFormDatetimerange,
   EleFormCheckboxButton,
-  EleFormSectionName
+  EleFormInputSelect
 ]
 components.forEach(component => {
   Vue.component(component.name, component)
@@ -124,7 +124,7 @@ const EleFormBuiltInNames = [
   'cascader-panel',
   'datetimerange',
   'checkbox-button',
-  'section-name'
+  'inputSelect'
 ]
 Vue.prototype.$EleFormBuiltInNames = EleFormBuiltInNames
 

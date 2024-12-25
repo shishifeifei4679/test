@@ -43,7 +43,6 @@ export default {
     },
     computedLabelPosition () {
       const labelPosition = this.labelPosition
-
       // 未指定labelPosition & 响应式模式 & 到达临界点
       if (!labelPosition && this.computedIsResponsive && this.colLayout === this.labelPositionBreakPoint) {
         return 'top'

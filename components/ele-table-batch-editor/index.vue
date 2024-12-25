@@ -38,14 +38,14 @@
 </template>
 
 <script>
-import lbTable from '@/components/lb-table/lb-table'
+import lbTable from "@/components/lb-table/lb-table"
 export default {
-  name: 'eleTableEditor',
+  name: "eleTableEditor",
   components: { lbTable },
   props: {
     align: {
       type: String,
-      default: 'center'
+      default: "center"
     },
     value: {
       type: Array,
@@ -80,14 +80,14 @@ export default {
     // 按钮组的位置
     justify: {
       type: String,
-      default: 'start'
+      default: "start"
     }
   },
   data() {
     return {
       selfdata: [], // 表格数据
       multipleSelection: [],
-      size: 'small',
+      size: "small",
       selfColumn: []
     }
   },
@@ -117,17 +117,17 @@ export default {
         ...item
       }
       if (item.isSingle && this.multipleSelection.length != 1) {
-        this.$message.error(this.$t('common.single'))
+        this.$message.error(this.$t("common.single"))
         return
       }
       if (item.isMultiple && this.multipleSelection.length == 0) {
-        this.$message.error(this.$t('common.multiple'))
+        this.$message.error(this.$t("common.multiple"))
         return
       }
 
       data.rows = JSON.parse(JSON.stringify(this.multipleSelection))
 
-      this.$emit('handleOperateEvent', data)
+      this.$emit("handleOperateEvent", data)
     },
 
     handleSelectionChange(rows) {

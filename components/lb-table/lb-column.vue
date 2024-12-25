@@ -8,11 +8,9 @@
     :type="column.type"
     :index="column.index"
     :column-key="column.columnKey"
-    :width="!column.type ? undefined : column.type == 'index' ? 66 : column.type === 'expand' && column.width ? parseInt(column.width) : 50"
+    :width="!column.type ? undefined : column.type == 'index' ? 66 : 50"
     :min-width="getWidth(column.minWidth || column.width, column.label)"
     :fixed="column.fixed"
-    :render-header="column.renderHeader"
-    :sortable="column.sortable || false"
     :sort-method="column.sortMethod"
     :sort-by="column.sortBy"
     :sort-orders="column.sortOrders"
@@ -34,10 +32,7 @@
     :show-column-search-config="!isFinite(column.showColumnSearchConfig) ? column.showColumnSearchConfig : {}"
   >
     <template slot="header" slot-scope="scope">
-      <lb-render v-if="column.renderHeader" :scope="scope" :render="column.renderHeader"> </lb-render>
       <div
-        v-else
-        class="column-search-btn-row"
         :style="{
           display: column.showColumnSearch ? 'flex' : 'inline-block',
           'align-items': 'center',
@@ -49,52 +44,67 @@
               : 'center'
         }"
       >
-        <span
+        <lb-render v-if="column.renderHeader" :scope="scope" :render="column.renderHeader"> </lb-render>
+        <div
+          class="column-search-btn-row"
           :style="{
-            'max-width': `calc(100% - ${column.showColumnSearch ? '13px' : 0})`,
-            color: column.color || '#666666'
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content':
+              (column.headerAlign || headerAlign || column.align || align || 'left') == 'center'
+                ? 'center'
+                : (column.headerAlign || headerAlign || column.align || align || 'left') == 'left'
+                ? 'flex-start'
+                : 'center'
           }"
         >
-          {{ scope.column.label }}
-          <el-tooltip
-            v-if="!!column.headerTips"
-            class="item"
-            effect="dark"
-            :content="column.headerTips"
-            placement="top-start"
-            style="cursor: pointer;"
+          <span
+            v-if="!column.renderHeader"
+            :style="{
+              'max-width': `calc(100% - ${column.showColumnSearch ? '13px' : 0})`,
+              color: column.color || '#666666'
+            }"
           >
-            <i class="el-icon-question"></i>
+            {{ scope.column.label }}
+            <el-tooltip
+              v-if="!!column.headerTips"
+              class="item"
+              effect="dark"
+              :content="column.headerTips"
+              placement="top-start"
+              style="cursor: pointer;"
+            >
+              <i class="el-icon-question"></i>
           </el-tooltip>
-        </span>
-        <el-popover popper-class="column-search-popover" placement="right" width="442" trigger="click" v-if="column.showColumnSearch" @hide="keywordSearchInputShow = false">
-          <div class="column-search-block">
-            <el-tabs v-model="activeName" type="card" size="mini">
-              <el-tab-pane :label="$i18n.t('common.screeningCondition')" name="second">
-                <span slot="label">
-                  <i class="el-icon-search"></i>
-                  {{ $i18n.t('common.screeningCondition') }}
-                  <!-- 筛选条件 -->
-                </span>
-
-                <div>
-                  <p class="column-search-label">{{ column.label }}</p>
+          </span>
+          <el-popover popper-class="column-search-popover" placement="right" width="442" trigger="click" v-if="column.showColumnSearch" @hide="keywordSearchInputShow = false">
+            <div class="column-search-block">
+              <el-tabs v-model="activeName" type="card" size="mini">
+                <el-tab-pane :label="$i18n.t('common.screeningCondition')" name="second">
+                  <span slot="label">
+                    <i class="el-icon-search"></i>
+                    {{ $i18n.t('common.screeningCondition') }}
+                    <!-- 筛选条件 -->
+                  </span>
 
                   <div>
-                    <div>
-                      <!-- 关键字搜索 -->
-                      <el-input
-                        v-if="(!columnSearchConfig.type || columnSearchConfig.type == 'input') && keywordSearchInputShow"
-                        v-model="searchForm.value"
-                        :placeholder="$i18n.t('common.keywordSearch')"
-                        size="mini"
-                        style="width: 100%"
-                        class="keyword-search-input"
-                        @input="(e) => valueChange(e, 'input')"
-                        @keyup.enter.native="handleEnter"
-                      ></el-input>
+                    <p class="column-search-label">{{ column.label }}</p>
 
-                      <!-- <el-time-picker
+                    <div>
+                      <div>
+                        <!-- 关键字搜索 -->
+                        <el-input
+                          v-if="(!columnSearchConfig.type || columnSearchConfig.type == 'input') && keywordSearchInputShow"
+                          v-model="searchForm.value"
+                          :placeholder="$i18n.t('common.keywordSearch')"
+                          size="mini"
+                          style="width: 100%"
+                          class="keyword-search-input"
+                          @input="(e) => valueChange(e, 'input')"
+                          @keyup.enter.native="handleEnter"
+                        ></el-input>
+
+                        <!-- <el-time-picker
                         v-else-if="columnSearchConfig.type == 'timePicker'"
                         :is-range="columnSearchConfig.dateType == 'isRange'"
                         v-model="searchForm.value"
@@ -109,254 +119,252 @@
                       >
                       </el-time-picker> -->
 
-                      <!-- 日期范围 -->
-                      <el-date-picker
-                        v-else-if="columnSearchConfig.type == 'datePicker' || columnSearchConfig.type == 'dateTimePicker'"
-                        :type="columnSearchConfig.dateType || 'datetimerange'"
-                        v-model="searchForm.value"
-                        range-separator="-"
-                        :start-placeholder="$i18n.t('common.startDate')"
-                        :end-placeholder="$i18n.t('common.endDate')"
-                        :placeholder="$i18n.t('common.pleaseSelectDate')"
-                        :value-format="columnSearchConfig.valueFormat || 'yyyy-MM-dd HH:mm:ss'"
-                        size="mini"
-                        style="width: 100%"
-                        @change="(e) => valueChange(e, 'date')"
-                        :default-time="columnSearchConfig.dateType || 'datetimerange' ? ['00:00:00', '23:59:59'] : undefined"
-                        @keyup.enter.native="handleEnter"
-                        :picker-options="columnSearchConfig.pickerOptions || {}"
-                      >
-                      </el-date-picker>
+                        <!-- 日期范围 -->
+                        <el-date-picker
+                          v-else-if="columnSearchConfig.type == 'datePicker' || columnSearchConfig.type == 'dateTimePicker'"
+                          :type="columnSearchConfig.dateType || 'datetimerange'"
+                          v-model="searchForm.value"
+                          range-separator="-"
+                          :start-placeholder="$i18n.t('common.startDate')"
+                          :end-placeholder="$i18n.t('common.endDate')"
+                          :placeholder="$i18n.t('common.pleaseSelectDate')"
+                          :value-format="columnSearchConfig.valueFormat || 'yyyy-MM-dd HH:mm:ss'"
+                          size="mini"
+                          style="width: 100%"
+                          @change="(e) => valueChange(e, 'date')"
+                          :default-time="columnSearchConfig.dateType || 'datetimerange' ? ['00:00:00', '23:59:59'] : undefined"
+                          @keyup.enter.native="handleEnter"
+                          :picker-options="columnSearchConfig.pickerOptions || {}"
+                        >
+                        </el-date-picker>
 
-                      <!-- 复选框 -->
-                      <div v-else-if="columnSearchConfig.type == 'checkbox'">
-                        <div class="flex">
-                          <div class="selected-btn flex align-items-center">
-                            <el-checkbox v-model="checkboxFocusVal1" @change="handleCheckAllChange(true)" @keyup.enter.native="handleEnter">
-                              <img class="img-default" src="@/assets/images/icon_invert.png" alt="" />
-                              <img class="img-hover" src="@/assets/images/icon_invert_h.png" alt="" />
-                              <!-- 全选 -->
-                              <span>{{ $i18n.t('common.checkAll') }}</span>
-                            </el-checkbox>
+                        <!-- 复选框 -->
+                        <div v-else-if="columnSearchConfig.type == 'checkbox'">
+                          <div class="flex">
+                            <div class="selected-btn flex align-items-center">
+                              <el-checkbox v-model="checkboxFocusVal1" @change="handleCheckAllChange(true)" @keyup.enter.native="handleEnter">
+                                <img class="img-default" src="@/assets/images/icon_invert.png" alt="" />
+                                <img class="img-hover" src="@/assets/images/icon_invert_h.png" alt="" />
+                                <!-- 全选 -->
+                                <span>{{ $i18n.t('common.checkAll') }}</span>
+                              </el-checkbox>
+                            </div>
+                            <div class="selected-btn flex align-items-center">
+                              <el-checkbox v-model="checkboxFocusVal2" @change="handleCheckAllChange(false)" @keyup.enter.native="handleEnter">
+                                <img class="img-default" src="@/assets/images/icon_clear.png" alt="" />
+                                <img class="img-hover" src="@/assets/images/icon_clear_h.png" alt="" />
+                                <!-- 清空 -->
+                                <span>{{ $i18n.t('common.empty') }}</span>
+                              </el-checkbox>
+                            </div>
+                            <div class="selected-btn flex align-items-center">
+                              <el-checkbox v-model="checkboxFocusVal3" @change="handleCheckInvertChange" @keyup.enter.native="handleEnter">
+                                <img class="img-default" src="@/assets/images/icon_checkall.png" alt="" />
+                                <img class="img-hover" src="@/assets/images/icon_checkall_h.png" alt="" />
+                                <!-- 反选 -->
+                                <span>{{ $i18n.t('common.invertSelection') }}</span>
+                              </el-checkbox>
+                            </div>
                           </div>
-                          <div class="selected-btn flex align-items-center">
-                            <el-checkbox v-model="checkboxFocusVal2" @change="handleCheckAllChange(false)" @keyup.enter.native="handleEnter">
-                              <img class="img-default" src="@/assets/images/icon_clear.png" alt="" />
-                              <img class="img-hover" src="@/assets/images/icon_clear_h.png" alt="" />
-                              <!-- 清空 -->
-                              <span>{{ $i18n.t('common.empty') }}</span>
-                            </el-checkbox>
-                          </div>
-                          <div class="selected-btn flex align-items-center">
-                            <el-checkbox v-model="checkboxFocusVal3" @change="handleCheckInvertChange" @keyup.enter.native="handleEnter">
-                              <img class="img-default" src="@/assets/images/icon_checkall.png" alt="" />
-                              <img class="img-hover" src="@/assets/images/icon_checkall_h.png" alt="" />
-                              <!-- 反选 -->
-                              <span>{{ $i18n.t('common.invertSelection') }}</span>
-                            </el-checkbox>
+
+                          <div class="margin-top10">
+                            <el-checkbox-group v-model="searchForm.value" @change="(e) => valueChange(e, 'checkbox')" @keyup.enter.native="handleEnter">
+                              <el-checkbox
+                                v-for="item in selectList"
+                                :label="column.optionProp ? item[column.optionProp.value] : item.value"
+                                :key="`${searchForm.columnKey}${column.optionProp ? item[column.optionProp.value] : item.value}`"
+                              >
+                                {{ column.optionProp ? item[column.optionProp.label] : item.label }}
+                              </el-checkbox>
+                            </el-checkbox-group>
                           </div>
                         </div>
 
-                        <div class="margin-top10">
-                          <el-checkbox-group v-model="searchForm.value" @change="(e) => valueChange(e, 'checkbox')" @keyup.enter.native="handleEnter">
-                            <el-checkbox
-                              v-for="item in selectList"
-                              :label="column.optionProp ? item[column.optionProp.value] : item.value"
-                              :key="`${searchForm.columnKey}${column.optionProp ? item[column.optionProp.value] : item.value}`"
-                            >
-                              {{ column.optionProp ? item[column.optionProp.label] : item.label }}
-                            </el-checkbox>
-                          </el-checkbox-group>
+                        <!-- 单选 -->
+                        <div v-else-if="columnSearchConfig.type == 'radio'">
+                          <div class="margin-top10">
+                            <el-radio-group v-model="searchForm.value" @input="(e) => valueChange(e, 'radio')" @keyup.enter.native="handleEnter">
+                              <el-radio
+                                v-for="item in selectList"
+                                :label="column.optionProp ? item[column.optionProp.value] : item.value"
+                                :key="`${searchForm.columnKey}${column.optionProp ? item[column.optionProp.value] : item.value}`"
+                              >
+                                {{ column.optionProp ? item[column.optionProp.label] : item.label }}
+                              </el-radio>
+                            </el-radio-group>
+                          </div>
                         </div>
-                      </div>
 
-                      <!-- 单选 -->
-                      <div v-else-if="columnSearchConfig.type == 'radio'">
-                        <div class="margin-top10">
-                          <el-radio-group v-model="searchForm.value" @input="(e) => valueChange(e, 'radio')" @keyup.enter.native="handleEnter">
-                            <el-radio
-                              v-for="item in selectList"
-                              :label="column.optionProp ? item[column.optionProp.value] : item.value"
-                              :key="`${searchForm.columnKey}${column.optionProp ? item[column.optionProp.value] : item.value}`"
-                            >
-                              {{ column.optionProp ? item[column.optionProp.label] : item.label }}
-                            </el-radio>
-                          </el-radio-group>
-                        </div>
-                      </div>
-
-                      <!-- 树搜索 -->
-                      <div v-else-if="columnSearchConfig.type == 'tree'">
-                        <div class="margin-top10">
-                          <!-- :default-checked-keys="
+                        <!-- 树搜索 -->
+                        <div v-else-if="columnSearchConfig.type == 'tree'">
+                          <div class="margin-top10">
+                            <!-- :default-checked-keys="
                               columnSearchConfig.showCheckbox
                                 ? searchForm.value
                                 : []
                             " -->
-                          <el-tree
-                            :data="selectList"
-                            accordion
-                            :props="column.optionProp || undefined"
-                            :default-expanded-keys="columnSearchConfig.defaultExpandedKeys || []"
-                            :node-key="columnSearchConfig.nodeKey || 'id'"
-                            :current-node-key="!columnSearchConfig.showCheckbox && searchForm.value && searchForm.value.length > 0 ? searchForm.value[0] : undefined"
-                            :highlight-current="false"
-                            :show-checkbox="columnSearchConfig.showCheckbox || false"
-                            :default-expand-all="columnSearchConfig.defaultExpandAll || false"
-                            :check-strictly="true"
-                            @check-change="handleTreeNodeClick"
-                            ref="treeSearch"
-                            @keyup.enter.native="handleEnter"
-                          >
-                            <span class="custom-tree-node flex align-items-center" slot-scope="{ node, data }">
-                              <el-radio
-                                v-model="searchForm.value[0]"
-                                :label="column.optionProp ? data[column.optionProp.value] : data.value"
-                                :key="`${searchForm.columnKey}${column.optionProp ? data[column.optionProp.value] : data.value}`"
-                                v-if="!columnSearchConfig.showCheckbox"
-                                :disabled="!!columnSearchConfig.finalNodeSelect && data.children && data.children.length > 0"
-                                @input="(e) => valueChange([data], 'tree')"
-                              >
-                                &nbsp;
-                              </el-radio>
-                              <span>
-                                <!-- {{
+                            <el-tree
+                              :data="selectList"
+                              accordion
+                              :props="column.optionProp || undefined"
+                              :default-expanded-keys="columnSearchConfig.defaultExpandedKeys || []"
+                              :node-key="columnSearchConfig.nodeKey || 'id'"
+                              :current-node-key="!columnSearchConfig.showCheckbox && searchForm.value && searchForm.value.length > 0 ? searchForm.value[0] : undefined"
+                              :highlight-current="false"
+                              :show-checkbox="columnSearchConfig.showCheckbox || false"
+                              :default-expand-all="columnSearchConfig.defaultExpandAll || false"
+                              :check-strictly="true"
+                              @check-change="handleTreeNodeClick"
+                              ref="treeSearch"
+                              @keyup.enter.native="handleEnter"
+                            >
+                              <span class="custom-tree-node flex align-items-center" slot-scope="{ node, data }">
+                                <el-radio
+                                  v-model="searchForm.value[0]"
+                                  :label="column.optionProp ? data[column.optionProp.value] : data.value"
+                                  :key="`${searchForm.columnKey}${column.optionProp ? data[column.optionProp.value] : data.value}`"
+                                  v-if="!columnSearchConfig.showCheckbox"
+                                  :disabled="!!columnSearchConfig.finalNodeSelect && data.children && data.children.length > 0"
+                                  @input="(e) => valueChange([data], 'tree')"
+                                >
+                                  &nbsp;
+                                </el-radio>
+                                <span>
+                                  <!-- {{
                                   column.optionProp
                                     ? node[column.optionProp.label]
                                     : node.label
                                 }} -->
-                                <!-- {{ node.label }} -->
-                                {{ column.optionProp ? data[column.optionProp.label] : data.label }}
+                                  <!-- {{ node.label }} -->
+                                  {{ column.optionProp ? data[column.optionProp.label] : data.label }}
+                                </span>
                               </span>
-                            </span>
-                          </el-tree>
+                            </el-tree>
+                          </div>
+                        </div>
+                        <!-- 数字范围搜索 -->
+                        <div v-else-if="columnSearchConfig.type == 'number'">
+                          <div class="margin-top10 flex">
+                            <!-- 数字范围搜索 -->
+                            <el-input-number
+                              v-model="searchForm.value[0]"
+                              @input="(e) => valueChange(e, 'number')"
+                              :placeholder="$i18n.t('common.minValue')"
+                              style="width: 192px !important"
+                            ></el-input-number>
+                            <el-input-number
+                              v-model="searchForm.value[1]"
+                              @input="(e) => valueChange(e, 'number')"
+                              :placeholder="$i18n.t('common.maxValue')"
+                              style="width: 192px !important; margin-left: 10px"
+                            ></el-input-number>
+                          </div>
                         </div>
                       </div>
-                      <!-- 数字范围搜索 -->
-                      <div v-else-if="columnSearchConfig.type == 'number'">
-                        <div class="margin-top10 flex">
-                          <!-- 数字范围搜索 -->
-                          <el-input-number
-                            v-model="searchForm.value[0]"
-                            @input="(e) => valueChange(e, 'number')"
-                            :placeholder="$i18n.t('common.minValue')"
-                            style="width: 192px !important"
-                          ></el-input-number>
-                          <el-input-number
-                            v-model="searchForm.value[1]"
-                            @input="(e) => valueChange(e, 'number')"
-                            :placeholder="$i18n.t('common.maxValue')"
-                            style="width: 192px !important; margin-left: 10px"
-                          ></el-input-number>
+
+                      <div class="margin-top10" v-if="columnSearchConfig.sort !== false">
+                        <el-radio v-model="searchForm.sort" label="asc" border size="mini" style="margin-right: 0" @keyup.enter.native="handleEnter">
+                          {{ $i18n.t('common.ascendingArrangement') }}
+                          <!-- 升序排列 -->
+                        </el-radio>
+                        <el-radio v-model="searchForm.sort" label="desc" border size="mini" @keyup.enter.native="handleEnter">
+                          {{ $i18n.t('common.descendingArrangement') }}
+                          <!-- 降序排列 -->
+                        </el-radio>
+                      </div>
+
+                      <div class="margin-top10 flex align-items-center operate-btn">
+                        <el-button @click="search" type="primary" size="mini">
+                          <!-- 搜索 -->
+                          {{ $i18n.t('common.search') }}
+                        </el-button>
+                        <el-button @click="reset('second')" size="mini">
+                          {{ $i18n.t('common.reset') }}
+                          <!-- 重置 -->
+                        </el-button>
+                        <div v-if="searchForm.valueText != ''" class="flex align-items-center" style="margin-left: 10px">
+                          <span class="text-value">
+                            {{ searchForm.valueText }}
+                          </span>
+                          <i @click="fastReset" class="el-icon-delete"></i>
                         </div>
-                      </div>
-                    </div>
-
-                    <div class="margin-top10" v-if="columnSearchConfig.sort !== false">
-                      <el-radio v-model="searchForm.sort" label="asc" border size="mini" style="margin-right: 0" @keyup.enter.native="handleEnter">
-                        {{ $i18n.t('common.ascendingArrangement') }}
-                        <!-- 升序排列 -->
-                      </el-radio>
-                      <el-radio v-model="searchForm.sort" label="desc" border size="mini" @keyup.enter.native="handleEnter">
-                        {{ $i18n.t('common.descendingArrangement') }}
-                        <!-- 降序排列 -->
-                      </el-radio>
-                    </div>
-
-                    <div class="margin-top10 flex align-items-center operate-btn">
-                      <el-button @click="search" type="primary" size="mini">
-                        <!-- 搜索 -->
-                        {{ $i18n.t('common.search') }}
-                      </el-button>
-                      <el-button @click="reset('second')" size="mini">
-                        {{ $i18n.t('common.reset') }}
-                        <!-- 重置 -->
-                      </el-button>
-                      <div v-if="searchForm.valueText != ''" class="flex align-items-center" style="margin-left: 10px">
-                        <span class="text-value">
-                          {{ searchForm.valueText }}
-                        </span>
-                        <i @click="fastReset" class="el-icon-delete"></i>
-                      </div>
-                      <div v-if="searchForm.sort != ''" class="flex align-items-center" style="margin-left: 10px">
-                        <span>{{ searchForm.sort == 'desc' ? $i18n.t('common.descendingArrangement') : $i18n.t('common.ascendingArrangement') }}</span>
-                        <i
-                          @click="
-                            () => {
-                              searchForm.sort = ''
-                              search()
-                            }
-                          "
-                          class="el-icon-delete"
-                        ></i>
+                        <div v-if="searchForm.sort != ''" class="flex align-items-center" style="margin-left: 10px">
+                          <span>{{ searchForm.sort == 'desc' ? $i18n.t('common.descendingArrangement') : $i18n.t('common.ascendingArrangement') }}</span>
+                          <i
+                            @click="
+                              () => {
+                                searchForm.sort = ''
+                                search()
+                              }
+                            "
+                            class="el-icon-delete"
+                          ></i>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-          </div>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
 
-          <img
-            v-if="
-              column.showColumnSearch &&
-              searchFormConfirmed.sort == '' &&
-              ((Array.isArray(searchFormConfirmed.value) &&
-                searchFormConfirmed.value.length > 0) ||
-                (!Array.isArray(searchFormConfirmed.value) &&
-                  searchFormConfirmed.value !== ''))
-            "
-            slot="reference"
-            class="img-search column-search-btn"
-            src="@/assets/images/icon_filter_h.png"
-            alt=""
-            @click="keywordSearcFocus"
-            ref="columnSearchBtnRef"
-            :data-id="columnSearchBtnUuidv4"
-          />
-          <img
-            v-else-if="
-              column.showColumnSearch &&
-              searchFormConfirmed.sort === '' &&
-              (searchFormConfirmed.value === '' ||
-                (Array.isArray(searchFormConfirmed.value) &&
-                  searchFormConfirmed.value.length == 0))
-            "
-            slot="reference"
-            class="img-search column-search-btn"
-            src="@/assets/images/icon_filter.png"
-            alt=""
-            @click="keywordSearcFocus"
-            ref="columnSearchBtnRef"
-            :data-id="columnSearchBtnUuidv4"
-          />
+            <img
+              v-if="
+                column.showColumnSearch &&
+                searchFormConfirmed.sort == '' &&
+                ((Array.isArray(searchFormConfirmed.value) && searchFormConfirmed.value.length > 0) ||
+                  (!Array.isArray(searchFormConfirmed.value) && searchFormConfirmed.value !== ''))
+              "
+              slot="reference"
+              class="img-search column-search-btn"
+              src="@/assets/images/icon_filter_h.png"
+              alt=""
+              @click="keywordSearcFocus"
+              ref="columnSearchBtnRef"
+              :data-id="columnSearchBtnUuidv4"
+            />
+            <img
+              v-else-if="
+                column.showColumnSearch &&
+                searchFormConfirmed.sort === '' &&
+                (searchFormConfirmed.value === '' || (Array.isArray(searchFormConfirmed.value) && searchFormConfirmed.value.length == 0))
+              "
+              slot="reference"
+              class="img-search column-search-btn"
+              src="@/assets/images/icon_filter.png"
+              alt=""
+              @click="keywordSearcFocus"
+              ref="columnSearchBtnRef"
+              :data-id="columnSearchBtnUuidv4"
+            />
 
-          <img
-            v-if="column.showColumnSearch && searchFormConfirmed.sort == 'asc'"
-            slot="reference"
-            class="img-search column-search-btn"
-            src="@/assets/images/icon_arr_asc.png"
-            alt=""
-            @click="keywordSearcFocus"
-            ref="columnSearchBtnRef"
-            :data-id="columnSearchBtnUuidv4"
-          />
-          <img
-            v-if="column.showColumnSearch && searchFormConfirmed.sort == 'desc'"
-            slot="reference"
-            class="img-search column-search-btn"
-            src="@/assets/images/icon_arr_desc.png"
-            alt=""
-            @click="keywordSearcFocus"
-            ref="columnSearchBtnRef"
-            :data-id="columnSearchBtnUuidv4"
-          />
-        </el-popover>
+            <img
+              v-if="column.showColumnSearch && searchFormConfirmed.sort == 'asc'"
+              slot="reference"
+              class="img-search column-search-btn"
+              src="@/assets/images/icon_arr_asc.png"
+              alt=""
+              @click="keywordSearcFocus"
+              ref="columnSearchBtnRef"
+              :data-id="columnSearchBtnUuidv4"
+            />
+            <img
+              v-if="column.showColumnSearch && searchFormConfirmed.sort == 'desc'"
+              slot="reference"
+              class="img-search column-search-btn"
+              src="@/assets/images/icon_arr_desc.png"
+              alt=""
+              @click="keywordSearcFocus"
+              ref="columnSearchBtnRef"
+              :data-id="columnSearchBtnUuidv4"
+            />
+          </el-popover>
+        </div>
       </div>
     </template>
 
     <template slot-scope="scope">
-      <lb-render :scope="scope" :render="column.render"> </lb-render>
+      <lb-render v-if="!$attrs.isMousedown" :scope="scope" :render="column.render"> </lb-render>
+      <div v-else style="display: inline-block; width: 100%" @mousedown="mousedown($event, scope)"><lb-render :scope="scope" :render="column.render"> </lb-render></div>
     </template>
 
     <template v-if="column.children">
@@ -413,6 +421,7 @@ import { v4 as uuidv4 } from 'uuid'
   },
  * @param {showColumnSearchConfig.xxx} xxx其他暂时未用到太多，可以通过此种方式自己引入，绑定
  */
+
 export default {
   name: 'LbColumn',
   props: {
@@ -499,6 +508,10 @@ export default {
       }
     },
 
+    mousedown(e, data) {
+      this.$emit('mousedown', e, data)
+    },
+
     /**
      * @description 快捷重置单项
      */
@@ -556,22 +569,19 @@ export default {
         })
 
         this.searchForm.valueText = valueText.join()
-      } else if (type == "number") {
+      } else if (type == 'number') {
         // 数字范围，需要初始化掉数组中的undefined默认值
-        const newArray = [];
-        if (
-          this.searchForm.value != "" &&
-          Array.isArray(this.searchForm.value)
-        ) {
+        const newArray = []
+        if (this.searchForm.value != '' && Array.isArray(this.searchForm.value)) {
           this.searchForm.value.forEach((item) => {
             if (item != undefined) {
-              newArray.push(item);
+              newArray.push(item)
             }
-          });
+          })
         }
 
-        this.searchForm.value = newArray.length == 0 ? newArray : this.searchForm.value;
-        this.searchForm.valueText = newArray.length > 0 ? newArray.join() : "";
+        this.searchForm.value = newArray.length == 0 ? newArray : this.searchForm.value
+        this.searchForm.valueText = newArray.length > 0 ? newArray.join() : ''
       }
     },
 
@@ -653,19 +663,20 @@ export default {
      * @description 每列header上的自定义搜索 点击搜索
      */
     search(refresh = true) {
-      const dateList = ["timePicker", "datePicker", "dateTimePicker", "number"];
-      const searchForm = this.searchForm; //  JSON.parse(JSON.stringify(this.searchForm));
+      const dateList = ['timePicker', 'datePicker', 'dateTimePicker', 'number']
+      const searchForm = this.searchForm //  JSON.parse(JSON.stringify(this.searchForm));
       if (searchForm.type == 'number') {
         // 数字范围，需要初始化掉数组中的undefined默认值
-        const newArray = [];
-        if (searchForm.value != "" && Array.isArray(searchForm.value)) {
+        const newArray = []
+        if (searchForm.value != '' && Array.isArray(searchForm.value)) {
           searchForm.value.forEach((item) => {
             if (item != undefined) {
-              newArray.push(item);
+              newArray.push(item)
             }
-          });
+          })
         }
-        searchForm.value = newArray.length == 0 ? newArray : searchForm.value;
+
+        searchForm.value = newArray.length == 0 ? newArray : searchForm.value
       }
 
       let params = {
@@ -800,7 +811,7 @@ export default {
               return {
                 label: val[this.column.optionProp.label || 'label'],
                 value: val[this.column.optionProp.value || 'value'],
-                color: val[this.column.optionProp.color  || 'color'] || '',
+                color: val[this.column.optionProp.color || 'color'] || ''
               }
             })
           }
@@ -818,15 +829,18 @@ export default {
               }
             } else {
               const classObj = {
-                'status-simulate-tags': !!text.color, // 必须要配置了颜色值的才可以
+                'status-simulate-tags': !!text.color // 必须要配置了颜色值的才可以
               }
               const styleObj = {
-                background: text.color || '',
+                background: text.color || ''
               }
 
-              return <span class={classObj} style={styleObj}>{text ? text.label || this.column?.default || "" : ""}</span>
+              return (
+                <span class={classObj} style={styleObj}>
+                  {text ? text.label || this.column?.default || '' : ''}
+                </span>
+              )
             }
-
           }
         } else {
           this.column.render = (h, scope) => {
@@ -870,7 +884,6 @@ export default {
       }
       // });
     },
-
     getSelect(h, scope, list) {
       const { attrs = {}, style = {}, change } = this.column
       const selectAttrs = typeof attrs === 'function' ? attrs(scope) : attrs
@@ -902,6 +915,7 @@ export default {
   }
 }
 </script>
+
 <style lang="scss" scoped>
 /* 新ui规范中的状态标签定义*/
 .status-simulate-tags {
@@ -909,37 +923,13 @@ export default {
   // min-width: 40px;
   height: 24px;
   padding: 0 8px;
-  background: #3C7FCD;
+  background: #3c7fcd;
   border-radius: 2px 2px 2px 2px;
   font-weight: 400;
   font-size: 12px;
-  color: #FFFFFF;
+  color: #ffffff;
   line-height: 24px;
 }
-
-// .status-simulate-tags-color-green {
-//   background: #73D13D;
-// }
-
-// .status-simulate-tags-color-orange {
-//   background: #FAAD14;
-// }
-
-// .status-simulate-tags-color-red {
-//   background: #F56C6C;
-// }
-
-// .status-simulate-tags-color-blue-grey {
-//   background: #8F9FB3;
-// }
-
-// .status-simulate-tags-color-grey {
-//   background: #B3B3B3;
-// }
-
-// .process-design .bjs-container .bjs-powered-by {
-//   display: none !important;
-// }
 
 .column-search-popover {
   padding-top: 0;
@@ -1183,31 +1173,5 @@ export default {
     vertical-align: middle;
     // margin-left: 2px;
   }
-}
-// 将checkbox的样式改为radio样式
-.radio-shape /deep/ .el-checkbox__input .el-checkbox__inner {
-  border-radius: 50%;
-  width: 14px;
-  height: 14px;
-  border: 1px solid #e5e5e5;
-  cursor: pointer;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  position: relative;
-  display: inline-block;
-}
-.radio-shape /deep/ .el-checkbox__input .el-checkbox__inner::after {
-  border: 0;
-  transform: initial !important;
-}
-.radio-shape /deep/ .el-checkbox__input.is-checked .el-checkbox__inner::after {
-  border: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background-color: white;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%) !important;
 }
 </style>

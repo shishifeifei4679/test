@@ -10,8 +10,6 @@
     :trigger-on-focus="false"
     @select="handleSelect"
     popper-class="searchPoper"
-    autocomplete="off"
-    :disabled="!!!$store.getters.factoryCode"
   >
     <template slot-scope="{ item }">
       <div :title="item.name" class="pack-1">
@@ -41,22 +39,14 @@ export default {
       queryString = queryString.trim();
       const getRouters = this.getRouters;
       const results = queryString
-        ? getRouters.filter((val) => val.name.includes(queryString) && val.visible === '1')
+        ? getRouters.filter((val) => val.name.includes(queryString))
         : [];
       cb(results);
     },
     handleSelect(val) {
-      // 1运营中心、  2业务中心
-      const homePathAllResourceId = this.$store.getters.homePathAllResourceId
-      this.$store.commit("SET_CHECKED_MENU_MODULE", homePathAllResourceId.includes(val.id) ? 1 : 2);
-
-      this.$nextTick(() => {
-        setTimeout(() => {
-          resourceVisit(val.id);
-          routerPush(val.path, "", val);
-          this.searchVal = "";
-        }, 100)
-      })
+      resourceVisit(val.id);
+      routerPush(val.path, "", val);
+      this.searchVal = "";
     },
   },
 };
@@ -84,7 +74,7 @@ export default {
     }
   }
   .pack-1:hover .name {
-    color:$header-bkColor-hover;// #0066ff;
+    color: #0066ff;
   }
 
   .pack-1:hover {

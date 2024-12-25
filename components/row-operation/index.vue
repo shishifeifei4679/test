@@ -8,7 +8,7 @@
       </span></template
     >
     <el-dropdown v-if="filterAuth.length > rowBntNumber" size="mini" trigger="click" @command="handleOperate">
-      <span class="el-dropdown-link"  @click.stop>
+      <span class="el-dropdown-link">
         <i class="el-icon-more" style="color: #557cf8;"></i>
       </span>
       <el-dropdown-menu slot="dropdown" style="text-align: center; min-width: 90px; margin-top: 5px;">

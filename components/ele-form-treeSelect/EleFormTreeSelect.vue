@@ -15,9 +15,9 @@
 </template>
 
 <script>
-import Treeselect from "@riophae/vue-treeselect";
-import "@riophae/vue-treeselect/dist/vue-treeselect.css";
-import formMixin from "../ele-form/mixins/formMixin";
+import Treeselect from "@riophae/vue-treeselect"
+import "@riophae/vue-treeselect/dist/vue-treeselect.css"
+import formMixin from "../ele-form/mixins/formMixin"
 export default {
   name: "EleFormTreeSelect",
   mixins: [formMixin],
@@ -26,25 +26,23 @@ export default {
   data() {
     return {
       defaultAttrs: {
-        placeholder: $i18n.t('common.select') + this.desc.label,
-      },
-    };
+        placeholder: $i18n.t("common.select") + this.desc.label
+      }
+    }
   },
   computed: {
     treeAttrs() {
-      const colAttrs = this.EleForm.disabled
-        ? { ...this.attrs, disabled: true }
-        : { ...this.attrs };
-      return colAttrs;
-    },
-  },
-};
+      const colAttrs = this.EleForm.disabled ? { ...this.attrs, disabled: true } : { ...this.attrs }
+      return colAttrs
+    }
+  }
+}
 </script>
 
 <style>
 .vue-treeselect {
   line-height: 20px;
-  height: auto;
+  height: 32px;
   color: #606266;
   font-size: 13px;
 }
@@ -82,9 +80,7 @@ export default {
   color: #c0c4cc;
   cursor: not-allowed;
 }
-.vue-treeselect--disabled
-  .vue-treeselect__control
-  .vue-treeselect__single-value {
+.vue-treeselect--disabled .vue-treeselect__control .vue-treeselect__single-value {
   color: #c0c4cc;
 }
 </style>

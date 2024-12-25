@@ -5,111 +5,144 @@
     v-if="Object.keys(formConfig).length > 0"
   >
     <!-- 查询表单 -->
-    <ele-form v-bind="selfFormConfig" v-model="formData" v-on="$listeners" :key="time">
+    <ele-form
+      v-bind="selfFormConfig"
+      v-model="formData"
+      v-on="$listeners"
+      ref="searchForm"
+      :key="time"
+    >
       <template v-slot:form-btn>
-        <el-button
-          @click="$emit('handleSearch')"
-          type="primary"
-          icon="el-icon-search"
-          >{{$t('common.search')}}</el-button
-        >
-        <el-button @click="handleReset" icon="el-icon-refresh">{{$t('common.reset')}}</el-button>
+        <el-button @click="handleSearch" type="primary" icon="el-icon-search">
+          {{ $t("common.search") }}
+        </el-button>
+        <el-button @click="handleReset" icon="el-icon-refresh">
+          {{ $t("common.reset") }}
+        </el-button>
         <!-- el-icon-arrow-up -->
-        <el-button type="text" v-show="isShow" @click="handleOpenOrdown">
-          {{ openOrdown ? $t('common.packUp') : $t('common.expand') }}
+        <el-button v-if="!selfFormConfig.hideMore" type="text" v-show="isShow" @click="handleOpenOrdown">
+          {{ openOrdown ? $t("common.packUp") : $t("common.expand") }}
           <i
             :class="[openOrdown ? 'el-icon-arrow-up' : 'el-icon-arrow-down']"
-          ></i
-        ></el-button>
+          ></i>
+        </el-button>
       </template>
     </ele-form>
   </div>
 </template>
 <script>
-const BASEHEIGHR = 48
+const BASEHEIGHR = 48;
 export default {
-  name: 'ele-form-search',
+  name: "ele-form-search",
   props: {
     formConfig: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
+    },
+    openDown: {
+      type: Boolean,
+      default: false,
     },
 
     // 初始化时form的值
-    initForm: Object
+    initForm: Object,
+    openHeight: Number,
   },
   watch: {
-    initForm: {
-      handler (val) {
-        if (!val) return
-        this.formData = JSON.parse(JSON.stringify(val))
+    openDown: {
+      handler(val) {
+        this.openOrdown = val;
       },
       immediate: true,
-      deep: true
+      deep: true,
+    },
+    initForm: {
+      handler(val) {
+        if (!val) return;
+        this.formData = JSON.parse(JSON.stringify(val));
+      },
+      immediate: true,
+      deep: true,
     },
     formConfig: {
-      handler (val) {
-        this.getFormConfig(val)
+      handler(val) {
+        this.getFormConfig(val);
       },
       immediate: true,
-      deep: true
-    }
+      deep: true,
+    },
   },
-  data () {
+  data() {
     return {
-      time:1,
+      time: 1,
       formData: {},
       isShow: false,
       selfFormConfig: {},
-      openOrdown: false
-    }
+      openOrdown: false,
+    };
   },
   computed: {
-    style () {
+    style() {
       return {
-        overflow: 'hidden',
+        overflow: "hidden",
         height: this.openOrdown
-          ? `${this.getRows * BASEHEIGHR}px`
+          ? `${this.openHeight ? this.openHeight : this.getRows * BASEHEIGHR}px`
           : `${BASEHEIGHR}px`,
-        transition: 'height 0.5s'
-      }
+        transition: "height 0.5s",
+      };
     },
-    getRows () {
-      const { formDesc = {}, column = 4 } = this.formConfig
-      const length = Object.keys(formDesc).length + 1
-      const rows = Math.ceil(length / column)
-      return rows
-    }
+    getRows() {
+      const { formDesc = {}, column = 4 } = this.formConfig;
+      const length = Object.keys(formDesc).length + 1;
+      const rows = Math.ceil(length / column);
+      return rows;
+    },
   },
   methods: {
+    handleSearch() {
+      this.$refs.searchForm
+        .validate()
+        .then((res) => {
+          console.log("搜索通过");
+          this.$emit("handleSearch");
+        })
+        .catch((err) => {
+          console.log("校验失败", err);
+        });
+    },
     handleReset() {
+      this.formData = {};
       this.time = Date.now();
-      this.formData = {}
-      this.$emit('handleReset')
+      this.$refs.searchForm.resetForm();
+      this.$emit("handleReset");
     },
-    handleOpenOrdown () {
-      this.openOrdown = !this.openOrdown
+    handleOpenOrdown() {
+      this.openOrdown = !this.openOrdown;
       setTimeout(() => {
-        this.getFormConfig(this.formConfig)
-      }, 300)
+        this.getFormConfig(this.formConfig);
+        this.$emit("handleShowMore");
+      }, 300);
     },
-    getFormConfig (val) {
-      const { formDesc = {}, column = 4, ...reset } = val
-      const rows = this.getRows
+    getFormConfig(val) {
+      const { formDesc = {}, column = 4, ...reset } = val;
+      const rows = this.getRows;
+      if (rows > 1) {
+        this.isShow = true;
+      }
       if (rows > 1 && !this.openOrdown) {
-        this.isShow = true
-        const entries = Object.entries(formDesc)
-        const beforeThreeItems = entries.slice(0, column - 1)
+        this.isShow = true;
+        const entries = Object.entries(formDesc);
+        const beforeThreeItems = entries.slice(0, column - 1);
         this.selfFormConfig = {
           formDesc: Object.fromEntries(beforeThreeItems),
-          ...reset
-        }
+          ...reset,
+        };
       } else {
-        this.selfFormConfig = val
+        this.selfFormConfig = val;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 <style lang="scss" scoped>
 .ele-form-search {

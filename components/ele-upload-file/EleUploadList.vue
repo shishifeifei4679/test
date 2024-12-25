@@ -99,7 +99,8 @@ export default {
     // 下载文件
     handleDownload(file) {
       if (file.url) {
-        download(1, file.url, file.name);
+        window.open(file.url)
+        // download(1, file.url, file.name);
       }
     },
     // 删除文件

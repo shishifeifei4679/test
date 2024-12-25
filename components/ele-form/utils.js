@@ -18,10 +18,6 @@ export const verifyFormat = (str, type) => {
     Encoding: {
       regular: /^[A-Za-z0-9_-]*$/,
       msg: getI18nMsg("common.encodingRules", "只能输入英文、数字、中划线、下划线"),
-    },
-    EncodingDrop: {
-      regular: /^[a-zA-Z0-9.]+$/,
-      msg: getI18nMsg("common.encodingDrop", "只能输入英文、数字、点"),
       },
   };
   

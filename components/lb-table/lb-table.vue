@@ -1,9 +1,16 @@
 <template>
   <div class="lb-table">
-    <el-table ref="elTable" v-bind="$attrs" v-on="$listeners" :data="data" :span-method="this.merge ? this.mergeMethod : this.spanMethod">
+    <el-table
+      ref="elTable"
+      v-bind="$attrs"
+      v-on="$listeners"
+      :data="data"
+      :span-method="this.merge ? this.mergeMethod : this.spanMethod"
+    >
       <lb-column
         ref="lbColumn"
         v-bind="$attrs"
+        @mousedown="mousedown"
         v-for="(item, index) in column"
         :key="`${index + (item.prop || item.type)}`"
         :column="item"
@@ -25,7 +32,7 @@
 </template>
 
 <script>
-import LbColumn from './lb-column'
+import LbColumn from "./lb-column";
 export default {
   props: {
     column: Array,
@@ -33,34 +40,34 @@ export default {
     spanMethod: Function,
     pagination: {
       type: Boolean,
-      default: false
+      default: false,
     },
     paginationTop: {
       type: String,
-      default: '15px'
+      default: "15px",
     },
     paginationAlign: {
       type: String,
-      default: 'right'
+      default: "right",
     },
-    merge: Array
+    merge: Array,
   },
   components: {
-    LbColumn
+    LbColumn,
   },
   data() {
     return {
       mergeLine: {},
-      mergeIndex: {}
-    }
+      mergeIndex: {},
+    };
   },
   created() {
-    this.getMergeArr(this.data, this.merge)
+    this.getMergeArr(this.data, this.merge);
   },
   computed: {
     dataLength() {
-      return this.data.length
-    }
+      return this.data.length;
+    },
   },
   methods: {
     /**
@@ -86,90 +93,84 @@ export default {
       this.$emit('column-search', data, refresh)
     },
 
+    mousedown(e,data){
+      if(this.$listeners.mousedown){
+        this.$emit('mousedown',e,data)
+      }
+    },
     clearSelection() {
-      this.$refs.elTable.clearSelection()
+      this.$refs.elTable.clearSelection();
     },
     toggleRowSelection(row, selected) {
-      this.$refs.elTable.toggleRowSelection(row, selected)
+      this.$refs.elTable.toggleRowSelection(row, selected);
     },
     toggleAllSelection() {
-      this.$refs.elTable.toggleAllSelection()
+      this.$refs.elTable.toggleAllSelection();
     },
     toggleRowExpansion(row, expanded) {
-      this.$refs.elTable.toggleRowExpansion(row, expanded)
+      this.$refs.elTable.toggleRowExpansion(row, expanded);
     },
     setCurrentRow(row) {
-      this.$refs.elTable.setCurrentRow(row)
+      this.$refs.elTable.setCurrentRow(row);
     },
     clearSort() {
-      this.$refs.elTable.clearSort()
+      this.$refs.elTable.clearSort();
     },
     clearFilter(columnKey) {
-      this.$refs.elTable.clearFilter(columnKey)
+      this.$refs.elTable.clearFilter(columnKey);
     },
     doLayout() {
       this.$nextTick(() => {
-        this.$refs.elTable && this.$refs.elTable.doLayout()
-      })
+        this.$refs.elTable && this.$refs.elTable.doLayout();
+      });
     },
     sort(prop, order) {
-      this.$refs.elTable.sort(prop, order)
+      this.$refs.elTable.sort(prop, order);
     },
     paginationCurrentChange(val) {
-      this.$emit('p-current-change', val)
+      this.$emit("p-current-change", val);
     },
     getMergeArr(tableData, merge) {
-      if (!merge) return
-      this.mergeLine = {}
-      this.mergeIndex = {}
+      if (!merge) return;
+      this.mergeLine = {};
+      this.mergeIndex = {};
       merge.forEach((item, k) => {
         tableData.forEach((data, i) => {
           if (i === 0) {
-            this.mergeIndex[item] = this.mergeIndex[item] || []
-            this.mergeIndex[item].push(1)
-            this.mergeLine[item] = 0
+            this.mergeIndex[item] = this.mergeIndex[item] || [];
+            this.mergeIndex[item].push(1);
+            this.mergeLine[item] = 0;
           } else {
             if (data[item] === tableData[i - 1][item]) {
-              this.mergeIndex[item][this.mergeLine[item]] += 1
-              this.mergeIndex[item].push(0)
+              this.mergeIndex[item][this.mergeLine[item]] += 1;
+              this.mergeIndex[item].push(0);
             } else {
-              this.mergeIndex[item].push(1)
-              this.mergeLine[item] = i
+              this.mergeIndex[item].push(1);
+              this.mergeLine[item] = i;
             }
           }
-        })
-      })
+        });
+      });
     },
     mergeMethod({ row, column, rowIndex, columnIndex }) {
-      const index = this.merge.indexOf(column.property)
+      const index = this.merge.indexOf(column.property);
       if (index > -1) {
-        const _row = this.mergeIndex[this.merge[index]][rowIndex]
-        const _col = _row > 0 ? 1 : 0
+        const _row = this.mergeIndex[this.merge[index]][rowIndex];
+        const _col = _row > 0 ? 1 : 0;
         return {
           rowspan: _row,
-          colspan: _col
-        }
+          colspan: _col,
+        };
       }
-    }
+    },
   },
   watch: {
     merge() {
-      this.getMergeArr(this.data, this.merge)
+      this.getMergeArr(this.data, this.merge);
     },
     dataLength() {
-      this.getMergeArr(this.data, this.merge)
-    }
-  }
-}
+      this.getMergeArr(this.data, this.merge);
+    },
+  },
+};
 </script>
-<style lang="scss" scoped>
-.lb-table /deep/.el-table--striped .el-table__body tr.el-table__row--striped.current-row td.el-table__cell,
-.el-table--striped .el-table__body tr.el-table__row--striped.selection-row td.el-table__cell {
-  background-color: #cee0f5;
-}
-
-.lb-table /deep/.el-table__body tr.current-row > td.el-table__cell,
-.el-table__body tr.selection-row > td.el-table__cell {
-  background-color: #cee0f5;
-}
-</style>

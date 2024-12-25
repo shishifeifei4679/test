@@ -1,22 +1,8 @@
 <template>
-  <el-tabs
-    v-model="activeName"
-    @tab-click="handleClick"
-    type="border-card"
-    class="primaryMenu"
-  >
-    <el-tab-pane
-      v-for="(item, index) in menus"
-      :label="item.name"
-      :name="index.toString()"
-      :key="index"
-    >
-      <div slot="label" class="tab-image">
-        <el-image
-          style="width: 30px; height: 30px;"
-          :src="item.icon"
-          fit="contain"
-        >
+  <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card" class="primaryMenu">
+    <el-tab-pane v-for="(item, index) in menus" :label="item.name" :name="index.toString()" :key="index">
+      <div slot="label" class="tab-image" :class="[URL(item.icon) ? '' : 'tab-image-top']">
+        <el-image style="width: 30px; height: 30px" :src="URL(item.icon)" fit="contain">
           <div
             slot="error"
             class="image-slot"
@@ -26,7 +12,7 @@
               display: flex;
               justify-content: center;
               align-items: center;
-              background: $header-bkColor;
+              background: #2f394e;
             "
           >
             <i class="el-icon-picture-outline"></i>
@@ -42,45 +28,44 @@ export default {
   name: "primaryMenu",
   data() {
     return {
-      activeName: "0",
-    };
+      activeName: "0"
+    }
   },
   computed: {
     menus() {
-      return this.$store.getters.menus;
-    },
+      return this.$store.getters.menus
+    }
   },
   created() {
-    this.activeName = (this.$store.getters.indexActive || '0').toString();
+    this.activeName = this.$store.getters.indexActive.toString()
   },
   methods: {
     URL(url) {
       try {
-        console.log(url, "urlurl");
-        let { pathname } = new URL(url);
-        console.log(pathname, "pathnamepathname");
-        return require(`@/assets${pathname}`);
+        let { pathname } = new URL(url)
+        return require(`@/assets${pathname}`)
       } catch (err) {
-        return "";
+        return ""
       }
     },
     handleClick() {
-      const item = this.menus[this.activeName];
+      const item = this.menus[this.activeName]
+
       if ((item.path || "").includes("http")) {
-        window.open(item.path);
+        window.open(item.path)
       } else if (item.children.length == 0) {
-        this.$message.error(this.$t("common.menuErr"));
+        this.$message.error(this.$t("common.menuErr"))
       } else {
-        this.$store.commit("SET_INDEXACTIVE", this.activeName);
-        this.$store.commit("SET_LEFTMENUS", item.children);
+        this.$store.commit("SET_INDEXACTIVE", this.activeName)
+        this.$store.commit("SET_LEFTMENUS", item.children)
       }
-    },
-  },
-};
+    }
+  }
+}
 </script>
 <style lang="scss" scoped>
 .primaryMenu {
-  background: transparent;
+  background: #2f394e;
   border: none;
   box-shadow: none;
   width: 100%;
@@ -89,7 +74,7 @@ export default {
     display: none;
   }
   /deep/ .el-tabs__item {
-    color: $header-fontColor !important;
+    color: #7f99bc !important;
     font-size: 14px;
     height: 60px;
   }
@@ -97,18 +82,18 @@ export default {
   /deep/.el-tabs__nav-prev {
     line-height: 60px;
     font-size: 12px;
-    color: $header-fontColor;
+    color: #7f99bc;
   }
   /deep/ .el-tabs__header {
-    background-color: transparent;
+    background-color: #2f394e;
     border-bottom: none;
     margin: 0;
   }
   /deep/ .is-active {
-    color: $header-fontColor-hover !important;
-    background-color: $header-bkColor-hover !important;
-    border-right-color: $header-bkColor-hover !important;
-    border-left-color: $header-bkColor-hover !important;
+    color: #3c7fcd !important;
+    background-color: #252d3e !important;
+    border-right-color: #252d3e !important;
+    border-left-color: #252d3e !important;
   }
   .tab-image {
     margin-top: 5px;

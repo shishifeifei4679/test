@@ -1,5 +1,5 @@
 <template>
-  <div class="treeCompositeTable" v-loading="loading" ref="mainW">
+  <div class="treeCompositeTable" v-loading="loading"  ref="mainW">
     <el-container>
       <div>
         <div class="icon-right-drag" v-if="showDrag">
@@ -20,7 +20,7 @@
           />
         </div>
         </div>
-        <div class="el-aside" :class="showLeft?'':'p-0'" ref="left">
+        <div class="el-aside" :class="showLeft ? '' : 'p-0'" ref="left">
           <el-input
             style="margin-bottom: 10px;"
             :placeholder="$t('common.filter')"
@@ -56,7 +56,6 @@
             </el-tree>
           </el-scrollbar>
         </div>
-       
       </div>
       <el-main class="main-pack">
         <ele-page
@@ -125,7 +124,6 @@ export default {
       mainW: 0,
       startX: 0,
       offsetX: 0,
-    
     };
   },
   watch: {
@@ -138,6 +136,7 @@ export default {
       if (this.defaultSelection) {
         this.currentKey = data[0]?.id;
         this.$refs["tree"].setCurrentKey(this.currentKey);
+        this.currentData = data[0];
       }
     });
   },
@@ -288,7 +287,7 @@ export default {
       } else {
         this.showLeft = false;
       }
-       this.$refs.left.style.width = w + "px";
+      this.$refs.left.style.width = w + "px";
       // this.selfLeftWidth = w + "px";
       event.preventDefault();
     },
@@ -309,7 +308,7 @@ export default {
   padding: 0;
   //margin: -10px;
   min-height: calc(100vh - 112px);
-  .p-0{
+  .p-0 {
     padding: 0px !important;
   }
   .icon-right-drag {

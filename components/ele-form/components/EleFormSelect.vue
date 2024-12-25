@@ -15,73 +15,73 @@
     <template v-for="(render, key) of slots" v-slot:[key]>
       <extend-slot
         :data="{
-          options: desc.options,
+          options: desc.options
         }"
         :key="key"
         :render="render"
       />
     </template>
     <el-option
-      :key="option.value"
+      :key="desc.optionsKey === 'index' ? index : option.value"
       :label="option.text"
       :value="option.value"
       v-bind="option.attrs"
-      v-for="option in options"
+      v-for="(option, index) in options"
     ></el-option>
   </el-select>
 </template>
 
 <script>
-import formMixin from "../mixins/formMixin";
+import formMixin from '../mixins/formMixin'
 
 export default {
-  name: "EleFormSelect",
+  name: 'EleFormSelect',
   mixins: [formMixin],
-  inject: ["EleForm"],
+  inject: ['EleForm'],
   props: {
-    field: String,
+    field: String
   },
   data() {
     return {
       loading: false,
-      mockRule: "radio",
-      type: ["Boolean", "Number", "String", "Array"],
-    };
+      mockRule: 'radio',
+      type: ['Boolean', 'Number', 'String', 'Array']
+    }
   },
   computed: {
     remoteMethod() {
-      return this.attrs["remote-method"] || this.attrs.remoteMethod;
+      return this.attrs['remote-method'] || this.attrs.remoteMethod
     },
     defaultAttrs() {
       return {
-        placeholder: this.t("ele-form.select") + this.desc._label,
-      };
-    },
+        placeholder: this.t('ele-form.select') + this.desc._label
+      }
+    }
   },
   methods: {
     // 单独处理change事件，把key，和value都返回
     changeHandler(val) {
-      const item = this.options.find((item) => item.value === val);
+      const item = this.options.find((item) => item.value === val)
       if (this.onEvents.oldOnChange) {
-        this.onEvents.oldOnChange(val || "", item || { text: "", value: "" });
+        this.onEvents.oldOnChange(val || '', item || { text: '', value: '' })
       }
     },
     changeOptions(q) {
       if (this.remoteMethod) {
-        this.loading = true;
+        this.loading = true
         this.remoteMethod(q, (options) => {
-          this.loading = false;
-          this.$set(this.EleForm.formDescData[this.field], "_options", options);
-          this.EleForm.formDescData[this.field].isRestValByOptions = false;
-          this.EleForm.changeOptions(options, this.field);
-        });
+          this.loading = false
+          this.$set(this.EleForm.formDescData[this.field], '_options', options)
+          this.EleForm.formDescData[this.field].isRestValByOptions = false
+          this.EleForm.changeOptions(options, this.field)
+        })
       }
-    },
+    }
   },
   mounted() {
     if (this.remoteMethod && this.newValue) {
-      this.changeOptions(this.newValue);
+      this.changeOptions(this.newValue)
     }
-  },
-};
+  }
+}
 </script>

@@ -11,19 +11,7 @@
       :label="option.value"
       v-bind="option.attrs"
       v-for="option of options"
-    >{{option.text}}
-        <el-tooltip
-          effect="dark"
-          v-if="option.note"
-          :content="option.note"
-          placement="top-start"
-        >
-          <i
-            style="color:#b2b2b2"
-            class="el-icon-question"
-          ></i>
-        </el-tooltip>
-    </el-radio>
+    >{{option.text}}</el-radio>
   </el-radio-group>
 </template>
 

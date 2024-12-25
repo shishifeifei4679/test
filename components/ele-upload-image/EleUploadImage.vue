@@ -57,8 +57,8 @@
       <div class="el-upload__tip" slot="tip" v-if="showTip">
         {{ $t("common.upload16") }}
         <b style="color: #f56c6c;">{{
-          fileType.length ? fileType.join("/") : $t("common.upload14")
-        }}</b>
+            fileType.length ? fileType.join("/") : $t("common.upload14")
+          }}</b>
         {{ $t("common.upload13") }}
         <template v-if="fileSize">
           {{ $t("common.upload15") }}
@@ -466,7 +466,7 @@ export default {
         } else {
           fileObj = {
             ...file,
-            title: file.title || (file.src ? file.src.split('/').pop() : file.url.split('/').pop()),
+            title: file.title || file.src.split('/').pop(),
           };
         }
         const before = this.beforeRemove(fileObj, this.computedValues);

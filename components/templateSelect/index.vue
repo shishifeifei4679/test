@@ -14,7 +14,7 @@
               :class="ite.active ? 'item-active-border' : ''"
             >
               <div class="item-active" v-show="ite.active || false">
-                <p>{{ $i18n.t("common.selected") }}</p>
+                <p>{{ $i18n.t('common.selected') }}</p>
               </div>
               <el-image :src="ite.url" class="image" fit="cover" />
               <div>
@@ -26,7 +26,7 @@
             <el-card class="card right" shadow="hover">
               <div
                 class="item-max"
-                :description="$i18n.t('common.templateSelectTip1')"
+                :title="$i18n.t('common.templateSelectTip1')"
                 @click.stop="
                   () => {
                     showViewer = true;
@@ -49,8 +49,8 @@
         </el-row>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">{{ $i18n.t("common.cancel")}}</el-button>
-        <el-button type="primary" @click="handerOk()">{{ $i18n.t("common.ok")}}</el-button>
+        <el-button @click="dialogVisible = false">{{ $i18n.t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handerOk()">{{ $i18n.t('common.ok') }}</el-button>
       </div>
     </el-dialog>
     <el-image-viewer
@@ -129,6 +129,8 @@ export default {
       await this.initData();
       this.imgUrl = "";
       this.$nextTick(() => {
+        // console.log(1111, this.imgList)
+        // console.log(222,val)
         this.imgList.map((ite) => {
           if (ite.code == val) {
             this.$set(ite, "active", true);
@@ -152,12 +154,13 @@ export default {
     handerOk() {
       let res = this.imgList.find((ite) => ite.active);
       if (res) {
+        console.log('res-------', res, res.code)
         this.$emit("select", res);
         this.$emit("input", res.code);
 
         this.dialogVisible = false;
       } else {
-        this.$message.warning("请选择其中一个模板");
+        this.$message.warning($i18n.t('common.templateSelectTip3'));
       }
     },
   },

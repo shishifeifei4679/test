@@ -7,13 +7,14 @@
       @handleSearch="handleSearch"
       @handleReset="handleReset"
       ref="eleFormSearch"
-      v-show="searchShow && formSearchShow"
-    >
-    </ele-form-search>
+      v-show="formSearchShow || formSearchShowForce"
+    ></ele-form-search>
+    <slot></slot>
     <!-- 列表展示 -->
     <ele-table
       ref="xTable"
       v-bind="$attrs"
+      :key="tableKey"
       v-on="$listeners"
       :beforeRequest="beforeRequest"
       @handleOperateEvent="handleOperateEvent"
@@ -46,15 +47,15 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    // 搜索模块 默认展示true
-    searchShow: {
+    // 主要是为了某些特殊需求，有列搜索的时候，还要显示搜索表单，所以这里 是true的话会强制显示，
+    formSearchShowForce: {
       type: Boolean,
-      default: true
+      default: false
     },
   },
   data() {
     return {
-      tableKey: 1,
+      tableKey:1,
       formSearchShow: true, // 如果column中有一列启用了，列搜索，便隐藏顶部搜索
     };
   },
@@ -79,7 +80,11 @@ export default {
       handleReset ? this.$emit("handleReset") : this.refresh(true);
     },
     getSearchParams() {
-      let formData = this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData ? this.$refs.eleFormSearch.formData : {};
+      // let formData = this.$refs.eleFormSearch.formData || {};
+      let formData =
+        this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+          ? this.$refs.eleFormSearch.formData
+          : {};
       const queryParam = !this.formSearchShow ? this.$refs.xTable.queryParam : {}
       let newFormData = {
         ...formData,
@@ -90,7 +95,11 @@ export default {
       return newFormData;
     },
     beforeRequest(data) {
-      let formData = this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData ? this.$refs.eleFormSearch.formData : {};
+      // let formData = this.$refs.eleFormSearch.formData || {};
+      let formData =
+        this.$refs.eleFormSearch && this.$refs.eleFormSearch.formData
+          ? this.$refs.eleFormSearch.formData
+          : {};
       const queryParam = !this.formSearchShow ? this.$refs.xTable.queryParam : {}
       let newFormData = {
         ...formData,
@@ -108,9 +117,8 @@ export default {
     },
     handleOperateEvent(data) {
       if (data.handleName === "export" && data.url) {
-        let { method, type } = data;
         const params = { ...this.getSearchParams(), ...this.otherParams };
-        exportExcel(data.url, params, type, method);
+        exportExcel(data.url, params);
       }
     },
   },

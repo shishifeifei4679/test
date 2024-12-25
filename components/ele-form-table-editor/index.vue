@@ -1,11 +1,10 @@
 <template>
   <div>
     <slot name="topBtn" />
-    <div style="margin-bottom: 10px;" v-if="attrs.topBtnRender">
+    <div style="margin-bottom: 10px" v-if="attrs.topBtnRender">
       <lb-render :render="attrs.topBtnRender" :scope="newValue" />
     </div>
     <ele-table-editor
-      v-cnEn
       :class="desc.class"
       :style="desc.style"
       class="ele-form-table-editor"
@@ -22,9 +21,9 @@
 </template>
 
 <script>
-import lbRender from "@/components/lb-table/lb-render";
-import EleTableEditor from "ele-table-editor";
-import formMixin from "@/components/ele-form/mixins/formMixin";
+import lbRender from "@/components/lb-table/lb-render"
+import EleTableEditor from "../ele-table-editor"
+import formMixin from "@/components/ele-form/mixins/formMixin"
 
 export default {
   name: "EleFormTableEditor",
@@ -32,7 +31,7 @@ export default {
   components: { EleTableEditor, lbRender },
 
   props: {
-    topBtnRender: { type: Object, default: () => {} },
+    topBtnRender: { type: Object, default: () => {} }
   },
   methods: {
     validate() {
@@ -43,12 +42,11 @@ export default {
           .catch(() => {
             // eslint-disable-next-line prefer-promise-reject-errors
             reject({
-              [this.$parent.$props.prop]:
-                this.desc.label + $i18n.t("common.tableErr"),
-            });
-          });
-      });
-    },
-  },
-};
+              [this.$parent.$props.prop]: this.desc.label + $i18n.t("common.tableErr")
+            })
+          })
+      })
+    }
+  }
+}
 </script>

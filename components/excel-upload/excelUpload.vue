@@ -10,20 +10,19 @@
         :on-progress="handleUploadProgress"
         :show-file-list="false"
         :file-list="fileList"
-        :headers="{ Satoken: satoken }"
+        :headers="{ Satoken: $store.getters.token }"
         accept=".xls, .xlsx"
         v-bind="$attrs"
       >
-        <el-button :type="type" :loading="loading" icon="el-icon-upload2">{{ buttonTxt || $t('common.import') }}</el-button>
+        <el-button :type="type" :loading="loading" :size="$attrs.size || 'small'" :disabled="$attrs.disabled" icon="el-icon-upload2">{{ buttonTxt }}</el-button>
       </el-upload>
     </el-tooltip>
   </div>
 </template>
 
 <script>
-import app from '@/main'
 export default {
-  name: 'excelUpload',
+  name: "excelUpload",
   props: {
     action: {
       type: String,
@@ -31,18 +30,17 @@ export default {
     },
     type: {
       type: String,
-      default: 'primary'
+      default: "primary"
     },
     buttonTxt: {
       type: String,
-      default: ''
+      default: $i18n.t("common.import")
     }
   },
   data() {
     return {
       loading: false,
-      fileList: [],
-      satoken: app.$store.getters.token
+      fileList: []
     }
   },
   methods: {
@@ -58,17 +56,17 @@ export default {
       // console.log('上传成功回调', res)
       this.loading = false
       if (res.success) {
-        this.$message.success(this.$t('common.upload11'))
-        this.$emit('handleUploadSuccess', res)
+        this.$message.success(this.$t("common.upload11"))
+        this.$emit("handleUploadSuccess", res)
       } else {
-        this.$message.error(res.message || this.$t('common.upload10'))
-        this.$emit('handleUploadError', res)
+        this.$message.error(res.message || this.$t("common.upload10"))
+        this.$emit("handleUploadError", res)
       }
       this.$refs.upload.clearFiles()
     },
     handleUploadError(err) {
-      this.$message.error(this.$t('common.upload10'))
-      this.$emit('handleUploadError', err)
+      this.$message.error(this.$t("common.upload10"))
+      this.$emit("handleUploadError", err)
       // console.log('上传失败回调')
       this.loading = false
       this.$refs.upload.clearFiles()

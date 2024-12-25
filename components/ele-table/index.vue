@@ -2,14 +2,14 @@
   <div v-loading="loading">
     <el-row ref="operateList" type="flex" :justify="justify" class="operateList">
       <div v-if="operateList.length !== 0" class="btn-pack">
-        <span v-for="(item, index) in operateList" :key="index">
-          <lb-render class="btn" v-if="item.render" :render="item.render" :scope="multipleSelection" />
+        <span v-for="(item, index) in operateList" :key="index" class="btn">
+          <lb-render v-if="item.render" :render="item.render" :scope="multipleSelection" v-btnAuths="item.auth" />
           <el-button
-            class="btn"
             v-else
             :type="item.type"
             :icon="item.icon"
             :class="item.class"
+            :size="item.size"
             @click="handleOperate(item)"
             :disabled="isDisabled(item)"
             v-btnAuths="item.auth"
@@ -73,6 +73,7 @@
     </el-row>
     <div v-if="dataDisplay">
       <lb-table
+        :key="sefKey"
         v-tableMaxHeight
         :column="selfColumn"
         :data="data"
@@ -97,6 +98,8 @@
         @sort-change="sortChange"
         @header-dragend="changeTableWidth"
         @row-click="rowClick"
+        @select-all="selectAll"
+        @select="select"
         @column-search="columnSearch"
         :size="size"
         :stripe="true"
@@ -233,6 +236,11 @@ export default {
     beforeRequest: Function,
     // 表格最大高度
     maxHeight: Number | String,
+    // 是否显示加载动画
+    showLoading: {
+      type: Boolean,
+      default: true
+    },
     //初始化时form的值
     initForm: {
       type: Object,
@@ -241,6 +249,7 @@ export default {
   },
   data() {
     return {
+      sefKey: 1,
       queryParam: {}, // 请求参数
       selfCurrentPage: 1, // 当前页
       selfPageSize: 10, // 默认每页10条
@@ -254,6 +263,7 @@ export default {
       field: [], // 排序字段，
       sort: [], // 排序方式，asc正序，desc倒序
       dataDisplay: true,
+      selectionAll: false,
       activeName: 'first',
       columnSearchListInUse: [
         // {
@@ -306,7 +316,6 @@ export default {
         return disabled
       }
     },
-    // 按钮是否隐藏显示
     isShow() {
       return function (item) {
         const btnAuths = this.$store.getters.btnAuths || []
@@ -464,11 +473,18 @@ export default {
      * @description 获取列搜索条件中的默认值
      */
     getDefaultColumnSearch() {
+      // const columnList = this.$refs.multipleTable.$refs.elTable.$children || [];
       const columnList =
         this.$refs.multipleTable && this.$refs.multipleTable.$refs.elTable && this.$refs.multipleTable.$refs.elTable.$children
           ? this.$refs.multipleTable.$refs.elTable.$children
           : []
       const dateList = ['timePicker', 'datePicker', 'dateTimePicker', 'number']
+      // this.queryParam.sort = !!this.queryParam.sort
+      //   ? this.queryParam.sort.split(",")
+      //   : [];
+      // this.queryParam.field = !!this.queryParam.field
+      //   ? this.queryParam.field.split(",")
+      //   : [];
       const fieldList = !!this.queryParam.field ? JSON.parse(JSON.stringify(this.queryParam)).field.split(',') : []
       const sortList = !!this.queryParam.sort ? JSON.parse(JSON.stringify(this.queryParam)).sort.split(',') : []
 
@@ -591,6 +607,7 @@ export default {
       }
 
       this.getInUseSearchForm()
+
       if (refresh) {
         this.getTableData(true)
       }
@@ -727,29 +744,107 @@ export default {
       })
     },
 
+    // 设置是否已经勾选
+    setCheckBool(data, bool) {
+      data.checkBool = bool || false
+
+      let checkStrictly = this.$attrs['checkStrictly'] || false
+      let treeProps = this.$attrs['tree-props']
+      let rowKey = this.$attrs['row-key']
+      if (rowKey && treeProps && !this.$attrs.lazy && checkStrictly) {
+        let { children } = treeProps
+        const getList = (obj) => {
+          if (obj[children]) {
+            obj[children].forEach((val) => {
+              if (val[children]) {
+                getList(val[children])
+              }
+              val.checkBool = bool || false
+            })
+          }
+          obj.checkBool = bool || false
+        }
+        getList(data)
+      }
+    },
+    // 树形结构转一维数组
+    convertData(data, childrenKey) {
+      let rows = []
+      const getList = (obj) => {
+        rows.push(obj)
+        if (obj[childrenKey]) {
+          obj[childrenKey].forEach((val) => {
+            if (val[childrenKey]) {
+              getList(val[childrenKey])
+            }
+            rows.push(val)
+          })
+        }
+      }
+      getList(data)
+      return rows
+    },
+    select(selection, row) {
+      this.setCheckBool(row, !row.checkBool)
+      setTimeout(() => {
+        this.subsetSelection()
+      }, 0)
+    },
+    selectAll(selection) {
+      this.selectionAll = !this.selectionAll
+      selection.map((ite) => {
+        this.setCheckBool(ite, this.selectionAll)
+      })
+      this.subsetSelection()
+    },
+    /**
+     * @author bing
+     * @since 2024-01-03 14:12:46
+     *  选择父级自动勾选或取消子集
+     */
+    subsetSelection() {
+      // 非懒加载情况下的树结构
+      let checkStrictly = this.$attrs['checkStrictly'] || false
+      let treeProps = this.$attrs['tree-props']
+      let rowKey = this.$attrs['row-key']
+      if (rowKey && treeProps && !this.$attrs.lazy && checkStrictly) {
+        try {
+          let { children } = treeProps
+
+          this.multipleSelection.map((ite) => {
+            let rows = this.convertData(ite, children)
+            this.$nextTick(() => {
+              rows.map((item) => {
+                this.$refs['multipleTable'].toggleRowSelection(item, item.checkBool)
+                // 需要选中并且有子集，展开操作
+                if (item.checkBool && item.children && item[children].length) {
+                  this.toggleRowExpansion(item, true)
+                }
+              })
+            })
+          })
+        } catch (error) {
+          //console.error("请检查多层级配置项", error);
+        }
+      }
+    },
     // 行点击
     rowClick(row) {
-      // let find = this.selfColumn.find((ite) => ite.type == 'selection')
-      // if (find && find.selectable) {
-      //   if (!find.selectable(row)) {
-      //     return
-      //   }
-      // }
-      // const selected = this.multipleSelection.some((item) => item.selectId === row.selectId)
-
+      // let key = this.$attrs['row-key']||'selectId'
+      // const selected = this.multipleSelection.some((item) => item[key] === row[key])
       // if (!selected) {
+      //   this.setCheckBool(row, true)
       //   this.multipleSelection.push(row)
       //   this.$refs['multipleTable'].toggleRowSelection(row, true)
       // } else {
+      //   this.setCheckBool(row, false)
       //   var filArr = this.multipleSelection.filter((item) => {
-      //     return item.selectId !== row.selectId
+      //     return item[key] !== row[key]
       //   })
       //   this.multipleSelection = filArr // 取消后剩余选中的
       //   this.$refs['multipleTable'].toggleRowSelection(row, false)
       // }
-
-      // this.$emit('rowClick', this.multipleSelection)
-      this.$emit('rowClickChange', this.multipleSelection)
+      this.subsetSelection()
     },
     changeTableWidth() {
       this.$nextTick(() => {
@@ -784,7 +879,7 @@ export default {
         ...this.queryParam
       }
       const data = this.beforeRequest ? { ...this.beforeRequest(getParams) } : getParams
-      this.loading = true
+      this.showLoading && (this.loading = true)
       setTimeout(() => {
         this.getList(data)
           .then((res) => {
@@ -792,16 +887,15 @@ export default {
               this.transFormdata(res)
                 .then((params) => {
                   const { records = [], total } = params
-
                   this.data = records.map((ite, index) => {
-                    return { ...ite, selectId: index }
+                    return { ...ite, selectId: index, checkBool: false }
                   })
                   this.total = +total || 0
                 })
                 .finally(() => {
                   this.loading = false
                 })
-            } else{
+            } else {
               if (!this.pagination) {
                 this.data = res.data.result
               } else {
@@ -871,22 +965,23 @@ export default {
     },
     handleSelectionChange(rows) {
       this.multipleSelection = rows
-      // this.$emit('rowClick', rows)
-      this.$emit('rowClickChange', rows)
     },
     clearSelection() {
       this.$refs.multipleTable.clearSelection()
-      // this.$emit('rowClick', [])
-      this.$emit('rowClickChange', [])
+      this.multipleSelection = []
+    },
+    // 展开某一行
+    toggleRowExpansion(row, selected) {
+      this.$refs.multipleTable.toggleRowExpansion(row, selected)
     },
     doLayout() {
-      if (this.$refs.multipleTable) {
-        this.$refs.multipleTable.doLayout()
-      }
+      this.$refs.multipleTable.doLayout()
     },
     command(size) {
       this.size = size
-      this.doLayout()
+      this.$nextTick(() => {
+        this.doLayout()
+      })
     },
     // 列改变时触发
     changeColumn(data) {
@@ -919,6 +1014,9 @@ export default {
       immediate: true,
       deep: true
     },
+    selfMaxHeight(val) {
+      console.log('selfMaxHeight', val)
+    },
     maxHeight: {
       handler(val) {
         if (!val) return
@@ -942,14 +1040,17 @@ export default {
 .operateList {
   // margin-bottom: 10px; //bing
 }
+
 .btn-pack {
   display: flex;
   flex-wrap: wrap;
 }
+
 .btn {
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
 .operateIcon {
   flex: 1;
   display: flex;
